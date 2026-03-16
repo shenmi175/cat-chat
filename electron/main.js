@@ -4,14 +4,13 @@ import { fileURLToPath } from 'url';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 
 import si from 'systeminformation';
-import activeWin from 'active-win';
+import { activeWindow } from 'active-win';
 
 // ESM-compatible __dirname polyfill
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ─── Linux VM Rendering Fixes ───────────────────────────────────────────────────
-// Hardware acceleration in Linux VMs causes severe transparency ghosting and flashes.
+// ─── Graphics Configuration ───────────────────────────────────────────────────
 app.commandLine.appendSwitch('enable-transparent-visuals');
 
 // ─── Config persistence ────────────────────────────────────────────────────────
@@ -174,11 +173,11 @@ ipcMain.on('open-settings', () => openSettingsWindow());
 // ─── IPC: System State ────────────────────────────────────────────────────────
 ipcMain.handle('get-system-state', async () => {
   try {
-    const activeWindow = await activeWin();
+    const currentWin = await activeWindow();
     const battery = await si.battery();
     return {
-      activeWindow: activeWindow ? activeWindow.title : '',
-      activeApp: activeWindow ? activeWindow.owner.name : '',
+      activeWindow: currentWin ? currentWin.title : '',
+      activeApp: currentWin ? currentWin.owner.name : '',
       batteryPercent: battery.percent,
       isCharging: battery.isCharging,
       time: new Date().toLocaleTimeString(),
