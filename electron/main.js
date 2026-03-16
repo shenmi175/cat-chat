@@ -183,14 +183,22 @@ ipcMain.handle('save-config', (_event, cfg) => {
 ipcMain.on('open-settings', () => openSettingsWindow());
 
 // ─── IPC: System State ────────────────────────────────────────────────────────
-// active-win is removed — its native .node binary needs Electron-specific
-// rebuild (electron-rebuild) which we skip for now.
+// Re-enabled active-win for Windows
 ipcMain.handle('get-system-state', async () => {
   try {
+    let activeWindow = null;
+    try {
+      // Dynamic import in case native compilation fails (e.g. on Linux VM)
+      const activeWin = (await import('active-win')).default;
+      activeWindow = await activeWin();
+    } catch (e) {
+      console.warn('active-win module not available:', e.message);
+    }
+    
     const battery = await si.battery();
     return {
-      activeWindow: '',
-      activeApp: '',
+      activeWindow: activeWindow ? activeWindow.title : '',
+      activeApp: activeWindow ? activeWindow.owner.name : '',
       batteryPercent: battery.percent,
       isCharging: battery.isCharging,
       time: new Date().toLocaleTimeString(),

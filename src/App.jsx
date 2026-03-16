@@ -54,9 +54,13 @@ function App() {
       const state = await getSystemState();
       if (!state) return;
 
+      // Trigger proactive talk if the actively used application changes or charging status changes
       const stateHash = `${state.activeApp}-${state.isCharging}`;
       if (lastStateHash.current !== stateHash && lastStateHash.current !== '') {
-        triggerProactiveTalk(state);
+        // Only trigger if we have an active app to talk about, or if it's a battery change
+        if (state.activeApp || state.batteryPercent !== lastStateHash.current.split('-')[1]) {
+          triggerProactiveTalk(state);
+        }
       }
       lastStateHash.current = stateHash;
     }, 10000);
@@ -68,7 +72,11 @@ function App() {
     setIsThinking(true);
     setCatState('thinking');
     try {
-      const prompt = `(系统通知：当前时间【${systemData.time}】，所在设备电量【${systemData.batteryPercent}%】。这是猫猫自动触发的对话，请根据你的性格主动对主人说一句话)`;
+      let prompt = `(系统通知：当前时间【${systemData.time}】，所在设备电量【${systemData.batteryPercent}%】`;
+      if (systemData.activeApp) {
+        prompt += `，主人当前正在使用软件【${systemData.activeApp}】（窗口标题：${systemData.activeWindow}）`;
+      }
+      prompt += `。这是猫猫自动触发的对话，请根据你的性格主动对主人说一句话)`;
       const reply = await generateReply(prompt, true);
       addMessage(reply, 'cat');
       setCatState('happy');
@@ -86,7 +94,13 @@ function App() {
     setCatState('thinking');
     try {
       const systemData = await getSystemState();
-      const stateContext = systemData ? `\n(背景信息 - 时间:${systemData.time})` : '';
+      
+      let stateContext = systemData ? `\n(背景信息 - 时间:${systemData.time}` : '';
+      if (systemData && systemData.activeApp) {
+        stateContext += `, 正使用软件:${systemData.activeApp}`;
+      }
+      if (stateContext) stateContext += ')';
+
       const prompt = `主人说：${text}${stateContext}`;
       const reply = await generateReply(prompt, false);
       addMessage(reply, 'cat');
