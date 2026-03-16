@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 
 import si from 'systeminformation';
+import activeWin from 'active-win';
 
 // ESM-compatible __dirname polyfill
 const __filename = fileURLToPath(import.meta.url);
@@ -11,9 +12,6 @@ const __dirname = path.dirname(__filename);
 
 // ─── Linux VM Rendering Fixes ───────────────────────────────────────────────────
 // Hardware acceleration in Linux VMs causes severe transparency ghosting and flashes.
-if (process.platform === 'linux') {
-  app.disableHardwareAcceleration();
-}
 app.commandLine.appendSwitch('enable-transparent-visuals');
 
 // ─── Config persistence ────────────────────────────────────────────────────────
@@ -133,15 +131,6 @@ function openSettingsWindow() {
 
   settingsWindow.on('closed', () => {
     settingsWindow = null;
-    // Force a repaint on the main window to clear any compositor ghosting 
-    // left behind by the closing settings window in a VM environment.
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      const [w, h] = mainWindow.getSize();
-      mainWindow.setSize(w, h - 1);
-      setTimeout(() => {
-        if (!mainWindow.isDestroyed()) mainWindow.setSize(w, h);
-      }, 50);
-    }
   });
 }
 
@@ -183,18 +172,9 @@ ipcMain.handle('save-config', (_event, cfg) => {
 ipcMain.on('open-settings', () => openSettingsWindow());
 
 // ─── IPC: System State ────────────────────────────────────────────────────────
-// Re-enabled active-win for Windows
 ipcMain.handle('get-system-state', async () => {
   try {
-    let activeWindow = null;
-    try {
-      // Dynamic import in case native compilation fails (e.g. on Linux VM)
-      const activeWin = (await import('active-win')).default;
-      activeWindow = await activeWin();
-    } catch (e) {
-      console.warn('active-win module not available:', e.message);
-    }
-    
+    const activeWindow = await activeWin();
     const battery = await si.battery();
     return {
       activeWindow: activeWindow ? activeWindow.title : '',
