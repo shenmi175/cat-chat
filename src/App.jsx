@@ -68,7 +68,7 @@ function App() {
     setIsThinking(true);
     setCatState('thinking');
     try {
-      const prompt = `当前时间【${systemData.time}】，所在设备电量【${systemData.batteryPercent}%】。请你主动找个理由拍马屁或者惊讶地吐槽一下！`;
+      const prompt = `(系统通知：当前时间【${systemData.time}】，所在设备电量【${systemData.batteryPercent}%】。这是猫猫自动触发的对话，请根据你的性格主动对主人说一句话)`;
       const reply = await generateReply(prompt, true);
       addMessage(reply, 'cat');
       setCatState('happy');
@@ -86,8 +86,8 @@ function App() {
     setCatState('thinking');
     try {
       const systemData = await getSystemState();
-      const stateContext = systemData ? `(当前时间:${systemData.time})` : '';
-      const prompt = `主人对你说：${text}。当前系统状态：${stateContext}。快奉承主人吧！`;
+      const stateContext = systemData ? `\n(背景信息 - 时间:${systemData.time})` : '';
+      const prompt = `主人说：${text}${stateContext}`;
       const reply = await generateReply(prompt, false);
       addMessage(reply, 'cat');
       setCatState('happy');
