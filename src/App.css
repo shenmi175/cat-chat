@@ -1,0 +1,164 @@
+/* Reset CSS & Transparent Body */
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: transparent !important; /* Critical for transparent window */
+  overflow: hidden;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.app-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  /* Allow clicking through the empty space of the window */
+  pointer-events: none; 
+}
+
+/* Input and buttons explicitly re-enable pointer events */
+.no-drag {
+  pointer-events: auto;
+}
+
+/* --- The Cat --- */
+.cat-area {
+  cursor: grab;
+  margin-bottom: 20px;
+  position: relative;
+  pointer-events: auto; /* Must receive mouse events for IPC-based drag */
+  user-select: none;    /* Prevent text selection while dragging */
+}
+
+.cat-area:active {
+  cursor: grabbing;
+}
+
+.cat-body {
+  width: 120px;
+  height: 100px;
+  background-color: #ffb7b2;
+  border-radius: 50% 50% 40% 40%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #d32f2f;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+/* Animations based on state */
+.cat-body.idle {
+  animation: breathe 3s infinite ease-in-out;
+}
+
+.cat-body.happy {
+  animation: bounce 0.5s ease;
+}
+
+.cat-body.thinking {
+  background-color: #ffecd2;
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+.ears {
+  position: absolute;
+  top: -20px;
+  font-size: 24px;
+}
+
+/* --- Chat & UI --- */
+.chat-area {
+  position: absolute;
+  bottom: 140px;
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.chat-bubble {
+  background: white;
+  border-radius: 20px;
+  padding: 10px 15px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 10px;
+  position: relative;
+  max-width: 80%;
+  word-wrap: break-word;
+}
+
+.chat-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 10px 10px 0;
+  border-style: solid;
+  border-color: white transparent transparent transparent;
+}
+
+.cat .message-content {
+  color: #d84315;
+  font-weight: bold;
+}
+
+.thinking-bubble {
+  background: rgba(255, 255, 255, 0.8);
+  padding: 5px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  color: #666;
+  font-style: italic;
+}
+
+.input-area {
+  margin-bottom: 10px;
+}
+
+form {
+  display: flex;
+  gap: 5px;
+}
+
+input {
+  border: none;
+  border-radius: 20px;
+  padding: 8px 15px;
+  width: 180px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  outline: none;
+}
+
+button {
+  border: none;
+  background-color: #ff8a65;
+  color: white;
+  border-radius: 20px;
+  padding: 8px 15px;
+  cursor: pointer;
+  font-weight: bold;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+button:hover {
+  background-color: #ff7043;
+}
