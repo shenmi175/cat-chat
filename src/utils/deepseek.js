@@ -1,28 +1,21 @@
 import axios from 'axios';
 
-// Runtime config cache – populated by loadRuntimeConfig()
-let _config = null;
-
 async function getRuntimeConfig() {
-  if (_config) return _config;
   try {
-    _config = await window.electronAPI.getConfig();
+    return await window.electronAPI.getConfig();
   } catch {
     // Fallback for non-Electron / test environments
-    _config = {
+    return {
       apiKey: import.meta.env.VITE_DEEPSEEK_API_KEY || '',
       model: 'deepseek-chat',
       systemPrompt: '',
     };
   }
-  // Stay up-to-date when settings window saves a new config
-  window.electronAPI?.onConfigUpdated?.((cfg) => { _config = cfg; });
-  return _config;
 }
 
 export async function generateReply(userPrompt, isProactive = false) {
   const cfg = await getRuntimeConfig();
-  const apiKey = cfg.apiKey || '';
+  const apiKey = (cfg.apiKey || '').trim();
   const model  = cfg.model || 'deepseek-chat';
   const systemPrompt = cfg.systemPrompt || '';
 

@@ -76,6 +76,7 @@ function createWindow() {
       preload: getPreloadPath('preload'),
       contextIsolation: true,
       nodeIntegration: false,
+      webSecurity: false, // Required for Axios in renderer to bypass CORS blocks from LLM APIs
     },
   });
 
