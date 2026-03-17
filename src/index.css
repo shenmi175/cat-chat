@@ -27,8 +27,18 @@ body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   background-color: var(--bg-deep);
   color: var(--text-main);
+  line-height: 1.6; /* Increased for legibility */
   -webkit-font-smoothing: antialiased;
   overflow: hidden;
+}
+
+.container-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
 }
 
 /* Scrollbar Styling */

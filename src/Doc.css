@@ -71,11 +71,12 @@
 
 .sensory-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); /* Responsive grid */
+  gap: 24px;
   position: relative;
   z-index: 1;
 }
+
 
 .sensory-item { display: flex; flex-direction: column; gap: 4px; }
 .sensory-item .label {
@@ -96,17 +97,22 @@
 /* Feature Grid */
 .feature-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive grid */
+  gap: 24px;
 }
 
 .feature-card {
-  padding: 20px;
+  padding: 24px; /* More padding */
   background: var(--bg-glass);
   border: 1px solid var(--border-glass);
   border-radius: 16px;
   transition: var(--transition);
+  min-height: 140px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Protect against overflow */
 }
+
 
 .feature-card:hover {
   background: rgba(255, 255, 255, 0.05);
