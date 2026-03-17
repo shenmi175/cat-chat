@@ -60,6 +60,7 @@ function getPreloadPath(name) {
   return existsSync(mjs) ? mjs : js;
 }
 
+function createWindow() {
   console.log('Main window creating...');
   mainWindow = new BrowserWindow({
     width: 300,
