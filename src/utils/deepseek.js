@@ -33,7 +33,13 @@ export async function generateReply(userPrompt, isProactive = false) {
   }
 
   // Add auto-memory trigger instruction
-  systemPrompt += `\n\n【重要指令】：如果你从主人的话语中获知了关于主人的新信息（如姓名、爱好、习惯等），请在回复的最后加上 [MEMORY: 信息内容]。你可以一次记录多条。`;
+  systemPrompt += `\n\n【重要记忆指令】：
+只有当主人（用户）在对话中**明确且肯定**地提到了关于他/她自己的新信息（如姓名、喜好、生日等）时，才在回答最后使用 [MEMORY: 信息内容]。
+禁止事项：
+1. 绝对禁止记录带有问号“？”的内容。
+2. 禁止记录你的猜测、疑问或反问。
+3. 只有主人给出的确凿事实（陈述句）才值得记录。
+4. 记录内容要精炼（如：主人喜欢喝咖啡）。`;
 
   if (!apiKey) {
     return isProactive
