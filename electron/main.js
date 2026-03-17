@@ -52,6 +52,8 @@ function saveConfig(cfg) {
 let mainWindow;
 let settingsWindow;
 let docWindow;
+let historyWindow;
+let isDev;
 
 // Detect preload filename (dev = .mjs, prod = .js)
 function getPreloadPath(name) {
@@ -84,14 +86,9 @@ function createWindow() {
 
   // Right-click context menu
   const ctxMenu = Menu.buildFromTemplate([
-    {
-      label: '📖 功能文档',
-      click: () => openDocWindow(),
-    },
-    {
-      label: '⚙️ 打开设置',
-      click: () => openSettingsWindow(),
-    },
+    { label: '功能使用文档', click: () => openDocWindow() },
+    { label: '查看历史记录', click: () => openHistoryWindow() },
+    { label: '打开设置', click: () => openSettingsWindow() },
     { type: 'separator' },
     {
       label: '❌ 退出',
@@ -235,6 +232,44 @@ ipcMain.handle('append-memories', async (_event, newFacts) => {
 });
 
 ipcMain.on('open-settings', () => openSettingsWindow());
+
+// ─── IPC: Chat History ────────────────────────────────────────────────────────
+ipcMain.handle('add-to-history', (_event, msgObj) => {
+  const cfg = loadConfig();
+  const history = cfg.chatHistory || [];
+  
+  // msgObj: { text, sender, time }
+  const newHistory = [...history, msgObj].slice(-15);
+  
+  saveConfig({ ...cfg, chatHistory: newHistory });
+  return true;
+});
+
+ipcMain.on('open-history', () => openHistoryWindow());
+
+function openHistoryWindow() {
+  if (historyWindow) {
+    historyWindow.focus();
+    return;
+  }
+
+  historyWindow = new BrowserWindow({
+    width: 400,
+    height: 600,
+    title: '对话历史',
+    backgroundColor: '#1a1b26',
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.mjs'),
+    },
+  });
+
+  const url = isDev ? 'http://localhost:5173/#history' : `file://${path.join(__dirname, '../dist/index.html')}#history`;
+  historyWindow.loadURL(url);
+
+  historyWindow.on('closed', () => {
+    historyWindow = null;
+  });
+}
 
 // ─── IPC: System State ────────────────────────────────────────────────────────
 ipcMain.handle('get-system-state', async () => {

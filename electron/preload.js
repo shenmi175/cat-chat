@@ -11,6 +11,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getConfig:    () => ipcRenderer.invoke('get-config'),
   saveConfig:   (cfg) => ipcRenderer.invoke('save-config', cfg),
   appendMemories: (facts) => ipcRenderer.invoke('append-memories', facts),
+  addToHistory:   (msg) => ipcRenderer.invoke('add-to-history', msg),
+  openHistory:    () => ipcRenderer.send('open-history'),
   openSettings: () => ipcRenderer.send('open-settings'),
 
   // Listen for config updates pushed from main process

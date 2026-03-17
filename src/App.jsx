@@ -162,10 +162,17 @@ function App() {
   };
 
   const addMessage = (text, sender) => {
+    const now = new Date();
+    const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    
+    // 1. Local UI state
     setMessages(prev => {
       const newLogs = [...prev, { text, sender }];
-      return newLogs.slice(-5); // Keep last 5 messages
+      return newLogs.slice(-5); // Keep last 5 messages for floating UI
     });
+
+    // 2. Persistent long history
+    window.electronAPI?.addToHistory({ text, sender, time: timeStr });
   };
 
   return (
