@@ -189,11 +189,12 @@ function App() {
       </div>
 
       <div className="chat-area no-drag">
-        <div className="messages-list">
-          {messages.map((msg, i) => (
-            <ChatBubble key={i} message={msg.text} sender={msg.sender} />
-          ))}
-        </div>
+        {messages.length > 0 && (
+          <ChatBubble 
+            message={messages[messages.length - 1].text} 
+            sender={messages[messages.length - 1].sender} 
+          />
+        )}
         {isThinking && (
           <div className="thinking-bubble">正在绞尽脑汁想词...</div>
         )}

@@ -27,6 +27,7 @@ const DEFAULT_CONFIG = {
 4. 对主人的任何行为和话语都抱有盲目的惊叹。
 无论发生什么，你都要用极短的话语（20字以内）先惊叹、再拍马屁。千万不要讲大道理！`,
   memories: [],
+  chatHistory: [],
 };
 
 function loadConfig() {
