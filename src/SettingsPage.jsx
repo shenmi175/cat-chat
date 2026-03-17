@@ -115,7 +115,7 @@ function SettingsPage() {
       </aside>
 
       <main className="settings-content">
-        {activeTab === 'general' ? (
+        {activeTab === 'general' && (
           <div className="content-pane fade-in">
             <header className="content-header">
               <h1>通用配置</h1>
@@ -162,7 +162,9 @@ function SettingsPage() {
               />
             </section>
           </div>
-        ) : (
+        )}
+
+        {activeTab === 'memory' && (
           <div className="content-pane fade-in">
             <header className="content-header">
               <h1>记忆库管理</h1>
