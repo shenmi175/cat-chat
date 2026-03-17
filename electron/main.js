@@ -51,10 +51,7 @@ function saveConfig(cfg) {
 
 // ─── Windows ──────────────────────────────────────────────────────────────────
 let mainWindow;
-let settingsWindow;
-let docWindow;
-let historyWindow;
-let sensoryWindow;
+let dashboardWindow; // Unified window for Settings, Doc, History, Sensory
 let isDev;
 
 // Detect preload filename (dev = .mjs, prod = .js)
@@ -88,11 +85,11 @@ function createWindow() {
 
   // Right-click context menu
   const ctxMenu = Menu.buildFromTemplate([
-    { label: '👁️ 开启感知中心', click: () => openSensoryWindow() },
+    { label: '👁️ 开启感知中心', click: () => openDashboard('sensory') },
     { type: 'separator' },
-    { label: '功能使用文档', click: () => openDocWindow() },
-    { label: '查看历史记录', click: () => openHistoryWindow() },
-    { label: '打开设置', click: () => openSettingsWindow() },
+    { label: '功能使用文档', click: () => openDashboard('doc') },
+    { label: '查看历史记录', click: () => openDashboard('history') },
+    { label: '打开设置', click: () => openDashboard('general') },
     { type: 'separator' },
     {
       label: '❌ 退出',
@@ -108,16 +105,22 @@ function createWindow() {
   }
 }
 
-function openSettingsWindow() {
-  if (settingsWindow && !settingsWindow.isDestroyed()) {
-    settingsWindow.focus();
+function openDashboard(initialTab = 'general') {
+  if (dashboardWindow && !dashboardWindow.isDestroyed()) {
+    // If already open, just redirect to the tab
+    if (process.env.VITE_DEV_SERVER_URL) {
+      dashboardWindow.loadURL(`${process.env.VITE_DEV_SERVER_URL}#${initialTab}`);
+    } else {
+      dashboardWindow.loadFile(path.join(__dirname, '../dist/index.html'), { hash: initialTab });
+    }
+    dashboardWindow.focus();
     return;
   }
 
-  settingsWindow = new BrowserWindow({
-    width: 900,
-    height: 750,
-    title: '猫猫设置',
+  dashboardWindow = new BrowserWindow({
+    width: 1200,
+    height: 800,
+    title: '猫猫控制台',
     resizable: true,
     webPreferences: {
       preload: getPreloadPath('preload'),
@@ -126,78 +129,16 @@ function openSettingsWindow() {
     },
   });
 
-  settingsWindow.setMenuBarVisibility(false);
+  dashboardWindow.setMenuBarVisibility(false);
 
   if (process.env.VITE_DEV_SERVER_URL) {
-    settingsWindow.loadURL(`${process.env.VITE_DEV_SERVER_URL}#settings`);
+    dashboardWindow.loadURL(`${process.env.VITE_DEV_SERVER_URL}#${initialTab}`);
   } else {
-    settingsWindow.loadFile(path.join(__dirname, '../dist/index.html'), { hash: 'settings' });
+    dashboardWindow.loadFile(path.join(__dirname, '../dist/index.html'), { hash: initialTab });
   }
 
-  settingsWindow.on('closed', () => {
-    settingsWindow = null;
-  });
-}
-
-function openDocWindow() {
-  if (docWindow && !docWindow.isDestroyed()) {
-    docWindow.focus();
-    return;
-  }
-
-  docWindow = new BrowserWindow({
-    width: 800,
-    height: 700,
-    title: '功能文档',
-    resizable: true,
-    webPreferences: {
-      preload: getPreloadPath('preload'),
-      contextIsolation: true,
-      nodeIntegration: false,
-    },
-  });
-
-  docWindow.setMenuBarVisibility(false);
-
-  if (process.env.VITE_DEV_SERVER_URL) {
-    docWindow.loadURL(`${process.env.VITE_DEV_SERVER_URL}#doc`);
-  } else {
-    docWindow.loadFile(path.join(__dirname, '../dist/index.html'), { hash: 'doc' });
-  }
-
-  docWindow.on('closed', () => {
-    docWindow = null;
-  });
-}
-
-function openSensoryWindow() {
-  if (sensoryWindow && !sensoryWindow.isDestroyed()) {
-    sensoryWindow.focus();
-    return;
-  }
-
-  sensoryWindow = new BrowserWindow({
-    width: 400,
-    height: 600,
-    title: '感知中心',
-    resizable: true,
-    webPreferences: {
-      preload: getPreloadPath('preload'),
-      contextIsolation: true,
-      nodeIntegration: false,
-    },
-  });
-
-  sensoryWindow.setMenuBarVisibility(false);
-
-  if (process.env.VITE_DEV_SERVER_URL) {
-    sensoryWindow.loadURL(`${process.env.VITE_DEV_SERVER_URL}#sensory`);
-  } else {
-    sensoryWindow.loadFile(path.join(__dirname, '../dist/index.html'), { hash: 'sensory' });
-  }
-
-  sensoryWindow.on('closed', () => {
-    sensoryWindow = null;
+  dashboardWindow.on('closed', () => {
+    dashboardWindow = null;
   });
 }
 
@@ -266,7 +207,7 @@ ipcMain.handle('append-memories', async (_event, newFacts) => {
   return addedCount;
 });
 
-ipcMain.on('open-settings', () => openSettingsWindow());
+ipcMain.on('open-settings', () => openDashboard('general'));
 
 // ─── IPC: Chat History ────────────────────────────────────────────────────────
 ipcMain.handle('add-to-history', (_event, msgObj) => {
@@ -289,39 +230,7 @@ ipcMain.handle('add-to-history', (_event, msgObj) => {
   return true;
 });
 
-ipcMain.on('open-history', () => openHistoryWindow());
-
-function openHistoryWindow() {
-  if (historyWindow && !historyWindow.isDestroyed()) {
-    historyWindow.focus();
-    return;
-  }
-
-  historyWindow = new BrowserWindow({
-    width: 500,
-    height: 700,
-    title: '对话历史',
-    backgroundColor: '#1a1b26',
-    webPreferences: {
-      preload: getPreloadPath('preload'),
-      contextIsolation: true,
-      nodeIntegration: false,
-    },
-  });
-
-  historyWindow.setMenuBarVisibility(false);
-
-  const devUrl = process.env.VITE_DEV_SERVER_URL;
-  if (devUrl) {
-    historyWindow.loadURL(`${devUrl}#history`);
-  } else {
-    historyWindow.loadFile(path.join(__dirname, '../dist/index.html'), { hash: 'history' });
-  }
-
-  historyWindow.on('closed', () => {
-    historyWindow = null;
-  });
-}
+ipcMain.on('open-history', () => openDashboard('history'));
 
 // ─── IPC: System State ────────────────────────────────────────────────────────
 ipcMain.handle('get-system-state', async () => {

@@ -1,8 +1,7 @@
 .sensory-root {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  background: radial-gradient(circle at top left, #1a1b26 0%, #0f0f13 100%);
+  height: 100%; /* Embedded inside content-pane */
   overflow: hidden;
 }
 
@@ -27,7 +26,7 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
-  padding-bottom: 100px;
+  padding-bottom: 24px;
 }
 
 /* Dashboard Panel (HUD Style) */
@@ -120,31 +119,5 @@
 .sensory-tips p { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
 
 .sensory-footer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 20px;
-  background: linear-gradient(to top, var(--bg-deep) 40%, transparent);
-  display: flex;
-  justify-content: center;
-  backdrop-filter: blur(8px);
-}
-
-.sensory-close-btn {
-  background: var(--accent);
-  color: white;
-  border: none;
-  border-radius: 30px;
-  padding: 12px 60px;
-  font-weight: 700;
-  font-size: 14px;
-  letter-spacing: 1px;
-  box-shadow: 0 8px 30px rgba(255, 158, 100, 0.2);
-  transition: var(--transition);
-}
-
-.sensory-close-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 40px rgba(255, 158, 100, 0.3);
+  display: none; /* Hide embedded close buttons */
 }

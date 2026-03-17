@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './Settings.css';
+import DocPage from './DocPage.jsx';
+import HistoryPage from './HistoryPage.jsx';
+import SensoryPage from './SensoryPage.jsx';
 
 const MODELS = [
   { value: 'deepseek-chat', label: 'DeepSeek Chat (推荐)' },
@@ -7,15 +10,24 @@ const MODELS = [
 ];
 
 function SettingsPage() {
-  const [cfg, setCfg] = useState({ 
-    apiKey: '', 
-    model: 'deepseek-chat', 
-    systemPrompt: '', 
-    memories: [] 
-  });
-  const [activeTab, setActiveTab] = useState('general'); // 'general' or 'memory'
-  const [saved, setSaved] = useState(false);
+  const [cfg, setCfg] = useState({});
   const [loading, setLoading] = useState(true);
+  
+  // Set initial tab from window hash, default to 'general'
+  const getInitialTab = () => {
+    const hash = window.location.hash.replace('#', '');
+    return ['general', 'memory', 'history', 'sensory', 'doc'].includes(hash) ? hash : 'general';
+  };
+  const [activeTab, setActiveTab] = useState(getInitialTab);
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      setActiveTab(getInitialTab());
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+  const [saved, setSaved] = useState(false);
   const [showKey, setShowKey] = useState(false);
   const [newMemory, setNewMemory] = useState('');
 
@@ -64,18 +76,36 @@ function SettingsPage() {
           <h2>猫猫控制台</h2>
         </div>
         <nav className="sidebar-nav">
-          <button 
-            className={`nav-item ${activeTab === 'general' ? 'active' : ''}`}
-            onClick={() => setActiveTab('general')}
-          >
-            ⚙️ 通用配置
-          </button>
-          <button 
-            className={`nav-item ${activeTab === 'memory' ? 'active' : ''}`}
-            onClick={() => setActiveTab('memory')}
-          >
-            🧠 记忆库管理
-          </button>
+            <button
+              className={`sidebar-item ${activeTab === 'general' ? 'active' : ''}`}
+              onClick={() => { setActiveTab('general'); window.location.hash = 'general'; }}
+            >
+              <span className="icon">⚙️</span> 通用配置
+            </button>
+            <button
+              className={`sidebar-item ${activeTab === 'memory' ? 'active' : ''}`}
+              onClick={() => { setActiveTab('memory'); window.location.hash = 'memory'; }}
+            >
+              <span className="icon">🧠</span> 记忆库管理
+            </button>
+            <button
+              className={`sidebar-item ${activeTab === 'history' ? 'active' : ''}`}
+              onClick={() => { setActiveTab('history'); window.location.hash = 'history'; }}
+            >
+              <span className="icon">📝</span> 对话历史
+            </button>
+            <button
+              className={`sidebar-item ${activeTab === 'sensory' ? 'active' : ''}`}
+              onClick={() => { setActiveTab('sensory'); window.location.hash = 'sensory'; }}
+            >
+              <span className="icon">👁️</span> 感知中心
+            </button>
+            <button
+              className={`sidebar-item ${activeTab === 'doc' ? 'active' : ''}`}
+              onClick={() => { setActiveTab('doc'); window.location.hash = 'doc'; }}
+            >
+              <span className="icon">📖</span> 功能文档
+            </button>
         </nav>
         <div className="sidebar-footer">
           <button className="settings-save-btn" onClick={handleSave}>
@@ -171,6 +201,25 @@ function SettingsPage() {
                 )}
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Embedded Pages */}
+        {activeTab === 'history' && (
+          <div className="embedded-page">
+            <HistoryPage />
+          </div>
+        )}
+
+        {activeTab === 'sensory' && (
+          <div className="embedded-page">
+            <SensoryPage />
+          </div>
+        )}
+
+        {activeTab === 'doc' && (
+          <div className="embedded-page">
+            <DocPage />
           </div>
         )}
       </main>
