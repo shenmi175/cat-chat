@@ -11,8 +11,17 @@ const Live2DViewer = ({ catState, isDragging }) => {
   const canvasRef = useRef(null);
   const modelRef = useRef(null);
   const appRef = useRef(null);
+  const [error, setError] = React.useState(null);
 
   useEffect(() => {
+    console.log('Live2D: Initializing PixiJS...');
+    
+    if (!window.Live2DCubismCore) {
+      console.error('Live2D: Cubism Core is missing! Check index.html script tag.');
+      setError('Core missing');
+      return;
+    }
+
     // 1. Initialize PIXI Application
     const app = new PIXI.Application({
       view: canvasRef.current,
@@ -29,32 +38,38 @@ const Live2DViewer = ({ catState, isDragging }) => {
     // 2. Load Live2D Model
     (async () => {
       try {
+        console.log('Live2D: Loading model from:', TORORO_URL);
         const model = await Live2DModel.from(TORORO_URL);
+        console.log('Live2D: Model loaded successfully!', model);
+        
         modelRef.current = model;
         app.stage.addChild(model);
 
         // Scaling & Positioning
-        const scale = 0.25; // Adjust based on model size
+        const scale = 0.15; // Adjusted for Tororo
         model.scale.set(scale);
-        model.x = 150 - (model.width / 2); // Center horizontally
-        model.y = 150 - (model.height / 2); // Center vertically
+        model.anchor.set(0.5, 0.5);
+        model.x = 150; 
+        model.y = 150;
 
         // Interaction Hit Areas
         model.interactive = true;
         
-        // Listen for internal model events
         model.on('hit', (hitAreas) => {
+          console.log('Live2D: Hit detected:', hitAreas);
           if (hitAreas.includes('Head')) {
-            model.motion('Tap'); // Example motion
+            model.motion('Tap');
           }
         });
 
       } catch (e) {
-        console.error('Failed to load Live2D model:', e);
+        console.error('Live2D: Load error:', e);
+        setError('Load failed');
       }
     })();
 
     return () => {
+      console.log('Live2D: Cleaning up...');
       app.destroy(true, true);
     };
   }, []);
@@ -64,8 +79,8 @@ const Live2DViewer = ({ catState, isDragging }) => {
     if (!modelRef.current) return;
     const model = modelRef.current;
 
+    console.log('Live2D: State changed:', { catState, isDragging });
     if (isDragging) {
-      // Play a specific motion for dragging (e.g. idle with high speed or specific struggle)
       model.motion('Idle', 0, PIXI.Live2DPriority.FORCE);
     } else if (catState === 'thinking') {
       model.motion('Idle', 1, PIXI.Live2DPriority.FORCE); 
@@ -75,10 +90,30 @@ const Live2DViewer = ({ catState, isDragging }) => {
   }, [catState, isDragging]);
 
   return (
-    <canvas 
-      ref={canvasRef} 
-      style={{ width: '300px', height: '300px', cursor: 'pointer' }} 
-    />
+    <div style={{ position: 'relative', width: '300px', height: '300px' }}>
+      {error && (
+        <div style={{ 
+          position: 'absolute', 
+          inset: 0, 
+          display: 'flex', 
+          flexDirection: 'column',
+          alignItems: 'center', 
+          justifyContent: 'center',
+          color: '#ff8a65',
+          fontSize: '12px',
+          textAlign: 'center',
+          padding: '20px'
+        }}>
+          <div>(=^･ω･^=)</div>
+          <div style={{ marginTop: '10px' }}>模型加载失败: {error}</div>
+          <div style={{ fontSize: '10px', opacity: 0.7 }}>请检查网络或刷新</div>
+        </div>
+      )}
+      <canvas 
+        ref={canvasRef} 
+        style={{ width: '300px', height: '300px', cursor: 'pointer', visibility: error ? 'hidden' : 'visible' }} 
+      />
+    </div>
   );
 };
 
