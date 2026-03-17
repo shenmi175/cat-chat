@@ -28,26 +28,31 @@ function HistoryPage() {
     <div className="history-root">
       <header className="history-header">
         <span className="history-icon">📜</span>
-        <h1>对话历史记录</h1>
-        <p className="history-subtitle">最近 15 次跨时空交流</p>
+        <h1>时光档案卷轴</h1>
+        <p className="history-subtitle">记录你与猫猫共同度过的每一秒</p>
       </header>
 
-      <div className="history-list">
-        {history.length === 0 ? (
-          <div className="no-history">还没有任何对话记录喵~</div>
-        ) : (
-          history.map((msg, i) => (
-            <div key={i} className={`history-item ${msg.sender}`}>
-              <div className="history-avatar">
-                {msg.sender === 'cat' ? '🐱' : '👤'}
+      <div className="history-container">
+        <div className="timeline-line"></div>
+        <main className="history-list">
+          {history.length === 0 ? (
+            <div className="no-history">还没有留下任何足迹喵...</div>
+          ) : (
+            history.map((msg, i) => (
+              <div key={i} className={`history-item ${msg.sender === 'user' ? 'user' : 'cat'}`}>
+                <div className="history-avatar">
+                  {msg.sender === 'user' ? '👤' : '🐱'}
+                </div>
+                <div className="history-bubble-group">
+                  <div className="history-bubble">
+                    {msg.text}
+                  </div>
+                  <span className="history-time">{msg.time}</span>
+                </div>
               </div>
-              <div className="history-bubble-wrap">
-                <div className="history-bubble">{msg.text}</div>
-                <div className="history-time">{msg.time}</div>
-              </div>
-            </div>
-          ))
-        )}
+            ))
+          )}
+        </main>
       </div>
 
       <footer className="history-footer">

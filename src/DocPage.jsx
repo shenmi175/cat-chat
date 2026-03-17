@@ -1,105 +1,88 @@
+```javascript
 import React, { useState, useEffect } from 'react';
 import './Doc.css';
 
 function DocPage() {
-  const [state, setState] = useState(null);
+  const [sysState, setSysState] = useState(null);
 
   useEffect(() => {
-    const update = async () => {
-      const data = await window.electronAPI.getSystemState();
-      setState(data);
+    const fetchState = async () => {
+      const state = await window.electronAPI.getSystemState();
+      setSysState(state);
     };
-    update();
-    const timer = setInterval(update, 2000);
+    fetchState();
+    const timer = setInterval(fetchState, 5000);
     return () => clearInterval(timer);
   }, []);
 
   return (
     <div className="doc-root">
       <header className="doc-header">
-        <span className="doc-icon">📖</span>
-        <h1>功能使用说明书</h1>
-        <p className="doc-subtitle">了解没头脑猫猫的所有超能力</p>
+        <div className="doc-logo">👁️</div>
+        <div className="doc-title-group">
+          <h1>猫猫感知中心</h1>
+          <p>实时观察桌面上正在发生的一切</p>
+        </div>
       </header>
 
-      <main className="doc-body">
-        <section className="doc-section sensory-dashboard">
-          <h2>👁️ 猫猫的视觉 (实时感知)</h2>
-          <p className="sensory-hint">这是猫猫目前察觉到的外界信息（不会持久化）：</p>
-          {state ? (
-            <div className="sensory-grid">
-              <div className="sensory-item">
-                <span className="label">正在看:</span>
-                <span className="value">{state.activeApp || '桌面'}</span>
-              </div>
-              <div className="sensory-item">
-                <span className="label">窗口名:</span>
-                <span className="value">{state.activeWindow || '无'}</span>
-              </div>
-              {state.hasBattery && (
-                <div className="sensory-item">
-                  <span className="label">电力值:</span>
-                  <span className="value">{state.batteryPercent}% {state.isCharging ? '⚡' : ''}</span>
-                </div>
-              )}
-              <div className="sensory-item">
-                <span className="label">时间:</span>
-                <span className="value">{state.time}</span>
-              </div>
+      <div className="doc-body">
+        {/* Real-time Dashboard Panel */}
+        <section className="sensory-dashboard glass-panel fade-in">
+          <div className="sensory-grid">
+            <div className="sensory-item">
+              <span className="label">当前软件</span>
+              <span className="value">{sysState?.activeApp || '获取中...'}</span>
             </div>
-          ) : (
-            <div className="sensory-loading">正在接入猫猫视角...</div>
-          )}
+            <div className="sensory-item">
+              <span className="label">窗口标题</span>
+              <span className="value">{sysState?.activeWindow || '无'}</span>
+            </div>
+            <div className="sensory-item">
+              <span className="label">系统电量</span>
+              <span className="value">{sysState?.hasBattery ? `${sysState.batteryPercent}%` : '无需电池'}</span>
+            </div>
+            <div className="sensory-item">
+              <span className="label">本地时间</span>
+              <span className="value">{sysState?.time || '--:--'}</span>
+            </div>
+          </div>
         </section>
 
-        <section className="doc-section">
-          <h2>💬 基础交互</h2>
-          <p>直接在底部的对话框输入文字即可与猫猫聊天。支持<b>最近 5 句</b>连续对话！</p>
-        </section>
+        {/* Feature Grid */}
+        <div className="feature-grid">
+          <div className="feature-card glass-card">
+            <h3>💬 实时唠叨</h3>
+            <p>只要你切换软件、电量变动或者它心血来潮，猫猫都会蹦出来对你<b>“马屁不停”</b>。</p>
+          </div>
+          
+          <div className="feature-card glass-card">
+            <h3>🎨 颜值模式</h3>
+            <p>你可以让它进入<b>“发呆、思考、开心”</b>等状态，它的表情包会随之变化。</p>
+          </div>
 
-        <section className="doc-section">
-          <h2>🧠 长期记忆 (小卡片)</h2>
-          <p>在<b>设置</b>页面，猫猫会记录<b>关于你的</b>重要信息。它现在只会记录你说的肯定事实，不再记录系统状态或它自己的猜测。</p>
-          <ul>
-            <li>例如添加：<i>“主人喜欢喝可乐”</i></li>
-            <li>猫猫会自动记住这些信息。当你聊到相关话题时，它会引用这些记忆，让对话更贴心。</li>
-          </ul>
-        </section>
+          <div className="feature-card glass-card">
+            <h3>🧠 自主记忆</h3>
+            <p>它会自动记住你提到的名字、饮食喜好等。这些记忆可以在<b>设置-记忆库</b>里手动维护喵！</p>
+          </div>
 
-        <section className="doc-section">
-          <h2>📢 主动搭话（碎碎念）</h2>
-          <p>即使你不理它，猫猫也会观察你：</p>
-          <ul>
-            <li><b>软件监控</b>：当你切换使用的软件（如打开了游戏或浏览器），它可能会跳出来吐槽或奉承。</li>
-            <li><b>状态感知</b>：它能感知当前时间。</li>
-            <li><b>省电助手</b>：只有笔记本电脑且电量低时它才会提醒，台式机用户不会被虚假警报打扰。</li>
-          </ul>
-        </section>
+          <div className="feature-card glass-card">
+            <h3>📜 时光回溯</h3>
+            <p>右键菜单打开<b>“对话记录”</b>，可以回看最近 15 次的跨次元交流档案。</p>
+          </div>
+        </div>
 
-        <section className="doc-section">
-          <h2>🎭 性格定制</h2>
-          <p>右键点击猫猫选择<b>“打开设置”</b>：</p>
-          <ul>
-            <li>你可以修改<b>系统提示词</b>来彻底改变它的灵魂。</li>
-            <li>想让它变成高冷御姐？还是满分马屁精？全由你决定。</li>
-          </ul>
+        <section className="doc-tips glass-panel">
+          <h3>💡 小贴士</h3>
+          <p>猫猫累了？右键点击它，选择<b>“退出”</b>即可让它回猫星休息喵！</p>
         </section>
-
-        <section className="doc-section">
-          <h2>🖱️ 桌面生存</h2>
-          <ul>
-            <li><b>拖拽</b>：鼠标左键按住猫猫身体即可在桌面上任意移动。</li>
-            <li><b>置顶</b>：它永远会浮动在所有窗口最上层，方便你随时摸摸。</li>
-            <li><b>右键菜单</b>：提供设置、文档和退出功能。</li>
-          </ul>
-        </section>
-      </main>
+      </div>
 
       <footer className="doc-footer">
-        <button className="doc-close-btn" onClick={() => window.close()}>关闭文档</button>
+        <button className="doc-close-btn pulse" onClick={() => window.close()}>合上卷轴</button>
       </footer>
     </div>
   );
 }
 
 export default DocPage;
+```
