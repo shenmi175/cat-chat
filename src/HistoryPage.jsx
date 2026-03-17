@@ -12,6 +12,14 @@ function HistoryPage() {
       setLoading(false);
     };
     fetchHistory();
+
+    // Live update if the window is open
+    const cleanup = window.electronAPI.onConfigUpdated((newCfg) => {
+      setHistory(newCfg.chatHistory || []);
+    });
+    return () => {
+      if (typeof cleanup === 'function') cleanup();
+    };
   }, []);
 
   if (loading) return <div className="history-loading">调取时光机档案中...</div>;

@@ -242,14 +242,23 @@ ipcMain.handle('add-to-history', (_event, msgObj) => {
   // msgObj: { text, sender, time }
   const newHistory = [...history, msgObj].slice(-15);
   
-  saveConfig({ ...cfg, chatHistory: newHistory });
+  const newCfg = { ...cfg, chatHistory: newHistory };
+  saveConfig(newCfg);
+  
+  // Notify all windows (especially History window)
+  BrowserWindow.getAllWindows().forEach(win => {
+    if (!win.isDestroyed()) {
+      win.webContents.send('config-updated', newCfg);
+    }
+  });
+  
   return true;
 });
 
 ipcMain.on('open-history', () => openHistoryWindow());
 
 function openHistoryWindow() {
-  if (historyWindow) {
+  if (historyWindow && !historyWindow.isDestroyed()) {
     historyWindow.focus();
     return;
   }
@@ -260,12 +269,20 @@ function openHistoryWindow() {
     title: '对话历史',
     backgroundColor: '#1a1b26',
     webPreferences: {
-      preload: path.join(__dirname, 'preload.mjs'),
+      preload: getPreloadPath('preload'),
+      contextIsolation: true,
+      nodeIntegration: false,
     },
   });
 
-  const url = isDev ? 'http://localhost:5173/#history' : `file://${path.join(__dirname, '../dist/index.html')}#history`;
-  historyWindow.loadURL(url);
+  historyWindow.setMenuBarVisibility(false);
+
+  const devUrl = process.env.VITE_DEV_SERVER_URL;
+  if (devUrl) {
+    historyWindow.loadURL(`${devUrl}#history`);
+  } else {
+    historyWindow.loadFile(path.join(__dirname, '../dist/index.html'), { hash: 'history' });
+  }
 
   historyWindow.on('closed', () => {
     historyWindow = null;
