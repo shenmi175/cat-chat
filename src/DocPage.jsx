@@ -1,4 +1,3 @@
-```javascript
 import React, { useState, useEffect } from 'react';
 import './Doc.css';
 
@@ -39,7 +38,9 @@ function DocPage() {
             </div>
             <div className="sensory-item">
               <span className="label">系统电量</span>
-              <span className="value">{sysState?.hasBattery ? `${sysState.batteryPercent}%` : '无需电池'}</span>
+              <span className="value">
+                {sysState?.hasBattery ? `${sysState.batteryPercent}%` : '无需电池'}
+              </span>
             </div>
             <div className="sensory-item">
               <span className="label">本地时间</span>
@@ -85,4 +86,3 @@ function DocPage() {
 }
 
 export default DocPage;
-```
