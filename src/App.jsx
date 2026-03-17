@@ -10,6 +10,7 @@ function App() {
   const [catState, setCatState] = useState('idle'); // idle, happy, thinking
   const lastStateHash = useRef('');
   const lastTriggerReason = useRef(''); // Track the REASON for the last proactive talk
+  const prevResponseRef = useRef([]); // Anti-repetition buffer
 
   // --- Drag: VM & Wayland robust tracking ---
   // In Linux VMs, pointer capture on frameless windows may instantly break.
@@ -94,14 +95,30 @@ function App() {
     setIsThinking(true);
     setCatState('thinking');
     try {
-      let prompt = `(系统通知：当前时间【${systemData.time}】，所在设备电量【${systemData.batteryPercent}%】`;
+      let prompt = `(系统通知：当前时间【${systemData.time}】`;
+      if (systemData.hasBattery) {
+        prompt += `，所在设备电量【${systemData.batteryPercent}%】`;
+      }
       if (systemData.activeApp) {
         prompt += `，主人当前正在使用软件【${systemData.activeApp}】（窗口标题：${systemData.activeWindow}）`;
       }
-      prompt += `。这是猫猫自动触发的对话，请根据你的性格主动对主人说一句话)`;
-      const reply = await generateReply(prompt, true);
+      prompt += `。这是猫猫自动触发的对话，根据性格主动说一句话。记住：严禁重复你刚说过的话！)`;
+      
+      let reply = await generateReply(prompt, true);
+      
+      // Anti-repetition retry
+      let retryCount = 0;
+      while (prevResponseRef.current.includes(reply.trim()) && retryCount < 2) {
+        reply = await generateReply(prompt + " (换个说法，别复读！)", true);
+        retryCount++;
+      }
+      
       const cleanReply = await extractAndSaveMemories(reply);
       addMessage(cleanReply, 'cat');
+      
+      // Update history buffer
+      prevResponseRef.current = [...prevResponseRef.current.slice(-2), cleanReply.trim()];
+      
       setCatState('happy');
       setTimeout(() => setCatState('idle'), 5000);
     } catch (e) {
@@ -119,8 +136,9 @@ function App() {
       const systemData = await getSystemState();
       
       let stateContext = systemData ? `\n(背景信息 - 时间:${systemData.time}` : '';
-      if (systemData && systemData.activeApp) {
-        stateContext += `, 正使用软件:${systemData.activeApp}`;
+      if (systemData) {
+        if (systemData.activeApp) stateContext += `, 正使用软件:${systemData.activeApp}`;
+        if (systemData.hasBattery) stateContext += `, 电量:${systemData.batteryPercent}%`;
       }
       if (stateContext) stateContext += ')';
 
@@ -158,9 +176,11 @@ function App() {
       </div>
 
       <div className="chat-area no-drag">
-        {messages.length > 0 && (
-          <ChatBubble message={messages[0].text} sender={messages[0].sender} />
-        )}
+        <div className="messages-list">
+          {messages.map((msg, i) => (
+            <ChatBubble key={i} message={msg.text} sender={msg.sender} />
+          ))}
+        </div>
         {isThinking && (
           <div className="thinking-bubble">正在绞尽脑汁想词...</div>
         )}

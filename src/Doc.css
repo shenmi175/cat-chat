@@ -95,3 +95,52 @@
   background: #89ddff;
   transform: translateY(-2px);
 }
+
+/* Sensory Dashboard */
+.sensory-dashboard {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px dashed rgba(122, 162, 247, 0.3);
+  padding: 20px;
+  border-radius: 12px;
+}
+
+.sensory-hint {
+  font-size: 13px !important;
+  color: #565f89;
+  margin-bottom: 15px;
+}
+
+.sensory-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.sensory-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sensory-item .label {
+  font-size: 11px;
+  color: #565f89;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.sensory-item .value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  color: #bb9af7;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sensory-loading {
+  text-align: center;
+  font-size: 13px;
+  color: #565f89;
+  padding: 10px;
+}

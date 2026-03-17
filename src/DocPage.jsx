@@ -1,7 +1,19 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './Doc.css';
 
 function DocPage() {
+  const [state, setState] = useState(null);
+
+  useEffect(() => {
+    const update = async () => {
+      const data = await window.electronAPI.getSystemState();
+      setState(data);
+    };
+    update();
+    const timer = setInterval(update, 2000);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
     <div className="doc-root">
       <header className="doc-header">
@@ -11,14 +23,43 @@ function DocPage() {
       </header>
 
       <main className="doc-body">
-        <section className="doc-section">
-          <h2>💬 基础交互</h2>
-          <p>直接在底部的对话框输入文字即可与猫猫聊天。它会根据你的话语和目前的系统状态（时间、正在用的软件等）来回复你。</p>
+        <section className="doc-section sensory-dashboard">
+          <h2>👁️ 猫猫的视觉 (实时感知)</h2>
+          <p className="sensory-hint">这是猫猫目前察觉到的外界信息（不会持久化）：</p>
+          {state ? (
+            <div className="sensory-grid">
+              <div className="sensory-item">
+                <span className="label">正在看:</span>
+                <span className="value">{state.activeApp || '桌面'}</span>
+              </div>
+              <div className="sensory-item">
+                <span className="label">窗口名:</span>
+                <span className="value">{state.activeWindow || '无'}</span>
+              </div>
+              {state.hasBattery && (
+                <div className="sensory-item">
+                  <span className="label">电力值:</span>
+                  <span className="value">{state.batteryPercent}% {state.isCharging ? '⚡' : ''}</span>
+                </div>
+              )}
+              <div className="sensory-item">
+                <span className="label">时间:</span>
+                <span className="value">{state.time}</span>
+              </div>
+            </div>
+          ) : (
+            <div className="sensory-loading">正在接入猫猫视角...</div>
+          )}
         </section>
 
         <section className="doc-section">
-          <h2>🧠 长期记忆（小卡片）</h2>
-          <p>在<b>设置</b>页面，你可以给猫猫添加“记忆卡片”。</p>
+          <h2>💬 基础交互</h2>
+          <p>直接在底部的对话框输入文字即可与猫猫聊天。支持<b>最近 5 句</b>连续对话！</p>
+        </section>
+
+        <section className="doc-section">
+          <h2>🧠 长期记忆 (小卡片)</h2>
+          <p>在<b>设置</b>页面，猫猫会记录<b>关于你的</b>重要信息。它现在只会记录你说的肯定事实，不再记录系统状态或它自己的猜测。</p>
           <ul>
             <li>例如添加：<i>“主人喜欢喝可乐”</i></li>
             <li>猫猫会自动记住这些信息。当你聊到相关话题时，它会引用这些记忆，让对话更贴心。</li>
