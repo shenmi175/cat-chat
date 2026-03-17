@@ -61,17 +61,16 @@ function getPreloadPath(name) {
 }
 
 function createWindow() {
-  console.log('Main window creating...');
   mainWindow = new BrowserWindow({
     width: 300,
     height: 300,
-    transparent: false, // Temporarily false to debug
-    backgroundColor: '#222222',
-    frame: true,        // Temporarily true to debug
+    transparent: true,
+    backgroundColor: '#00000000',
+    frame: false,
     alwaysOnTop: true,
-    resizable: true,
-    hasShadow: true,
-    skipTaskbar: false, // Temporarily false
+    resizable: false,
+    hasShadow: false,
+    skipTaskbar: true,
     webPreferences: {
       preload: getPreloadPath('preload'),
       contextIsolation: true,
@@ -79,8 +78,6 @@ function createWindow() {
       webSecurity: false,
     },
   });
-
-  mainWindow.webContents.openDevTools(); // Open DevTools to see errors
 
   mainWindow.setAlwaysOnTop(true, 'pop-up-menu');
   mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
@@ -104,10 +101,8 @@ function createWindow() {
   mainWindow.webContents.on('context-menu', () => ctxMenu.popup({ window: mainWindow }));
 
   if (process.env.VITE_DEV_SERVER_URL) {
-    console.log('Loading URL:', process.env.VITE_DEV_SERVER_URL);
     mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
   } else {
-    console.log('Loading File:', path.join(__dirname, '../dist/index.html'));
     mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
   }
 }
