@@ -6,8 +6,12 @@ function DocPage() {
 
   useEffect(() => {
     const fetchState = async () => {
-      const state = await window.electronAPI.getSystemState();
-      setSysState(state);
+      try {
+        const state = await window.electronAPI.getSystemState();
+        if (state) setSysState(state);
+      } catch (err) {
+        console.error('Failed to fetch system state:', err);
+      }
     };
     fetchState();
     const timer = setInterval(fetchState, 5000);
@@ -16,7 +20,7 @@ function DocPage() {
 
   return (
     <div className="doc-root">
-      <header className="doc-header">
+      <header className="doc-header glass-panel">
         <div className="doc-logo">👁️</div>
         <div className="doc-title-group">
           <h1>猫猫感知中心</h1>
@@ -79,7 +83,9 @@ function DocPage() {
       </div>
 
       <footer className="doc-footer">
-        <button className="doc-close-btn pulse" onClick={() => window.close()}>合上卷轴</button>
+        <button className="doc-close-btn pulse" onClick={() => window.close()}>
+          合上卷轴
+        </button>
       </footer>
     </div>
   );
