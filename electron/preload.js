@@ -14,5 +14,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openSettings: () => ipcRenderer.send('open-settings'),
 
   // Listen for config updates pushed from main process
-  onConfigUpdated: (cb) => ipcRenderer.on('config-updated', (_e, cfg) => cb(cfg)),
+  onConfigUpdated: (cb) => {
+    const listener = (_e, cfg) => cb(cfg);
+    ipcRenderer.on('config-updated', listener);
+    return () => ipcRenderer.removeListener('config-updated', listener);
+  },
 });

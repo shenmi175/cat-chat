@@ -18,6 +18,14 @@ function SettingsPage() {
       setCfg(c);
       setLoading(false);
     });
+
+    // Listen for background updates (e.g. AI auto-extracting memories)
+    const cleanup = window.electronAPI?.onConfigUpdated((newCfg) => {
+      setCfg(newCfg);
+    });
+    return () => {
+      if (typeof cleanup === 'function') cleanup();
+    };
   }, []);
 
   const handleSave = async () => {

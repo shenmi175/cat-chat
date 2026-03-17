@@ -91,6 +91,16 @@ function App() {
     return cleanReply;
   };
 
+  const getUniqueReply = async (prompt, isProactive) => {
+    let reply = await generateReply(prompt, isProactive);
+    let retryCount = 0;
+    while (prevResponseRef.current.includes(reply.trim()) && retryCount < 2) {
+      reply = await generateReply(prompt + " (注意：你刚说过类似的词，请换个花样！)", isProactive);
+      retryCount++;
+    }
+    return reply;
+  };
+
   const triggerProactiveTalk = async (systemData) => {
     setIsThinking(true);
     setCatState('thinking');
@@ -104,15 +114,7 @@ function App() {
       }
       prompt += `。这是猫猫自动触发的对话，根据性格主动说一句话。记住：严禁重复你刚说过的话！)`;
       
-      let reply = await generateReply(prompt, true);
-      
-      // Anti-repetition retry
-      let retryCount = 0;
-      while (prevResponseRef.current.includes(reply.trim()) && retryCount < 2) {
-        reply = await generateReply(prompt + " (换个说法，别复读！)", true);
-        retryCount++;
-      }
-      
+      const reply = await getUniqueReply(prompt, true);
       const cleanReply = await extractAndSaveMemories(reply);
       addMessage(cleanReply, 'cat');
       
@@ -143,9 +145,13 @@ function App() {
       if (stateContext) stateContext += ')';
 
       const prompt = `主人说：${text}${stateContext}`;
-      const reply = await generateReply(prompt, false);
+      const reply = await getUniqueReply(prompt, false);
       const cleanReply = await extractAndSaveMemories(reply);
       addMessage(cleanReply, 'cat');
+
+      // Update history buffer for user chat too
+      prevResponseRef.current = [...prevResponseRef.current.slice(-2), cleanReply.trim()];
+
       setCatState('happy');
     } catch (e) {
       addMessage("呜呜喵...我脑子卡壳了连不上网了...", 'cat');
