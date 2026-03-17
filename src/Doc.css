@@ -1,0 +1,97 @@
+.doc-root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: linear-gradient(135deg, #1a1b26 0%, #16161e 100%);
+  color: #a9b1d6;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  overflow: hidden;
+}
+
+.doc-header {
+  text-align: center;
+  padding: 30px 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.doc-icon {
+  font-size: 40px;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.doc-header h1 {
+  font-size: 24px;
+  color: #7aa2f7;
+  margin-bottom: 5px;
+}
+
+.doc-subtitle {
+  font-size: 14px;
+  color: #565f89;
+}
+
+.doc-body {
+  flex: 1;
+  padding: 30px 40px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.doc-section h2 {
+  font-size: 18px;
+  color: #bb9af7;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.doc-section p {
+  line-height: 1.6;
+  font-size: 15px;
+}
+
+.doc-section b {
+  color: #e0af68;
+}
+
+.doc-section ul {
+  margin-top: 10px;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.doc-section li {
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+.doc-footer {
+  padding: 20px;
+  text-align: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.doc-close-btn {
+  background: #7aa2f7;
+  color: #1a1b26;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 40px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.doc-close-btn:hover {
+  background: #89ddff;
+  transform: translateY(-2px);
+}

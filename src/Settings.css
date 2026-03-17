@@ -166,7 +166,7 @@ body, html {
 
 .memory-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   background: rgba(155, 112, 255, 0.15);
   border: 1px solid rgba(155, 112, 255, 0.3);
@@ -176,11 +176,21 @@ body, html {
   color: #d8cfff;
 }
 
+.memory-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
 .memory-text {
   max-width: 250px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  word-break: break-all;
+}
+
+.memory-time {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.3);
+  font-family: monospace;
 }
 
 .memory-delete-btn {

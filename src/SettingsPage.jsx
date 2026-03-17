@@ -28,7 +28,15 @@ function SettingsPage() {
 
   const addMemory = () => {
     if (!newMemory.trim()) return;
-    setCfg({ ...cfg, memories: [...(cfg.memories || []), newMemory.trim()] });
+    const now = new Date();
+    const timeStr = `${now.getMonth() + 1}/${now.getDate()} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    
+    const newEntry = {
+      text: newMemory.trim(),
+      time: timeStr
+    };
+    
+    setCfg({ ...cfg, memories: [...(cfg.memories || []), newEntry] });
     setNewMemory('');
   };
 
@@ -95,7 +103,7 @@ function SettingsPage() {
             rows={5}
             value={cfg.systemPrompt}
             onChange={(e) => setCfg({ ...cfg, systemPrompt: e.target.value })}
-            placeholder="描述猫猫的性格和行为方式…"
+            placeholder="描述猫猫的性格 and 行为方式…"
           />
           <p className="settings-hint">修改提示词可以改变猫猫的说话风格和性格特点。</p>
         </section>
@@ -114,12 +122,22 @@ function SettingsPage() {
             <button className="settings-toggle-btn" onClick={addMemory}>➕ 添加</button>
           </div>
           <div className="memory-list">
-            {(cfg.memories || []).map((mem, i) => (
-              <div key={i} className="memory-item">
-                <span className="memory-text">{mem}</span>
-                <button className="memory-delete-btn" onClick={() => removeMemory(i)}>×</button>
-              </div>
-            ))}
+            {(cfg.memories || []).map((mem, i) => {
+              // Handle both legacy string and new object structure
+              const isObj = typeof mem === 'object' && mem !== null;
+              const text = isObj ? mem.text : mem;
+              const time = isObj ? mem.time : '';
+              
+              return (
+                <div key={i} className="memory-item">
+                  <div className="memory-content">
+                    <span className="memory-text">{text}</span>
+                    {time && <span className="memory-time">{time}</span>}
+                  </div>
+                  <button className="memory-delete-btn" onClick={() => removeMemory(i)}>×</button>
+                </div>
+              );
+            })}
           </div>
           <p className="settings-hint">猫猫会记住这些信息，并在聊天中引用它们。</p>
         </section>

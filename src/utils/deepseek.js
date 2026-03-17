@@ -23,7 +23,13 @@ export async function generateReply(userPrompt, isProactive = false) {
   // Combine system prompt with memories
   let systemPrompt = rawSystemPrompt;
   if (memories.length > 0) {
-    systemPrompt += `\n\n【你一定要记住的主人信息（记忆库）】：\n${memories.map((m, i) => `${i+1}. ${m}`).join('\n')}`;
+    const memoryStrings = memories.map((m, i) => {
+      const isObj = typeof m === 'object' && m !== null;
+      const text = isObj ? m.text : m;
+      const time = isObj ? ` (记录时间: ${m.time})` : '';
+      return `${i + 1}. ${text}${time}`;
+    });
+    systemPrompt += `\n\n【你一定要记住的主人信息（记忆库）】：\n${memoryStrings.join('\n')}`;
   }
 
   if (!apiKey) {

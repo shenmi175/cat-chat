@@ -51,6 +51,7 @@ function saveConfig(cfg) {
 // ─── Windows ──────────────────────────────────────────────────────────────────
 let mainWindow;
 let settingsWindow;
+let docWindow;
 
 // Detect preload filename (dev = .mjs, prod = .js)
 function getPreloadPath(name) {
@@ -60,6 +61,7 @@ function getPreloadPath(name) {
 }
 
 function createWindow() {
+// ... lines 63-84 (omitted for brevity in replacement chunk)
   mainWindow = new BrowserWindow({
     width: 300,
     height: 300,
@@ -74,16 +76,19 @@ function createWindow() {
       preload: getPreloadPath('preload'),
       contextIsolation: true,
       nodeIntegration: false,
-      webSecurity: false, // Required for Axios in renderer to bypass CORS blocks from LLM APIs
+      webSecurity: false,
     },
   });
 
-  // Use the strongest always-on-top level available on Linux
   mainWindow.setAlwaysOnTop(true, 'pop-up-menu');
   mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
 
   // Right-click context menu
   const ctxMenu = Menu.buildFromTemplate([
+    {
+      label: '📖 功能文档',
+      click: () => openDocWindow(),
+    },
     {
       label: '⚙️ 打开设置',
       click: () => openSettingsWindow(),
@@ -134,6 +139,37 @@ function openSettingsWindow() {
   });
 }
 
+function openDocWindow() {
+  if (docWindow && !docWindow.isDestroyed()) {
+    docWindow.focus();
+    return;
+  }
+
+  docWindow = new BrowserWindow({
+    width: 500,
+    height: 600,
+    title: '功能文档',
+    resizable: true,
+    webPreferences: {
+      preload: getPreloadPath('preload'),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  });
+
+  docWindow.setMenuBarVisibility(false);
+
+  if (process.env.VITE_DEV_SERVER_URL) {
+    docWindow.loadURL(`${process.env.VITE_DEV_SERVER_URL}#doc`);
+  } else {
+    docWindow.loadFile(path.join(__dirname, '../dist/index.html'), { hash: 'doc' });
+  }
+
+  docWindow.on('closed', () => {
+    docWindow = null;
+  });
+}
+
 // ─── App lifecycle ────────────────────────────────────────────────────────────
 app.whenReady().then(() => {
   createWindow();
@@ -181,6 +217,7 @@ ipcMain.handle('get-system-state', async () => {
       activeApp: currentWin ? currentWin.owner.name : '',
       batteryPercent: battery.percent,
       isCharging: battery.isCharging,
+      hasBattery: battery.hasBattery,
       time: new Date().toLocaleTimeString(),
     };
   } catch (error) {

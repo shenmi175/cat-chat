@@ -61,9 +61,14 @@ function App() {
 
       if (lastStateHash.current !== stateHash && lastStateHash.current !== '') {
         // Only trigger if the core reason changed (don't repeat "low battery" every 10s)
+        // Also skip battery-based triggers if the device has no battery (desktop fix)
         if (currentStateReason !== lastTriggerReason.current) {
-           triggerProactiveTalk(state);
-           lastTriggerReason.current = currentStateReason;
+           if (!state.hasBattery && currentStateReason === 'low_battery') {
+             // Skip low battery alarm on desktops
+           } else {
+             triggerProactiveTalk(state);
+             lastTriggerReason.current = currentStateReason;
+           }
         }
       }
       lastStateHash.current = stateHash;
