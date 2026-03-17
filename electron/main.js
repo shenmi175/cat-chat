@@ -204,6 +204,36 @@ ipcMain.handle('save-config', (_event, cfg) => {
   return true;
 });
 
+ipcMain.handle('append-memories', async (_event, newFacts) => {
+  const cfg = loadConfig();
+  const currentMemories = cfg.memories || [];
+  
+  const now = new Date();
+  const timeStr = `${now.getMonth() + 1}/${now.getDate()} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+  
+  let addedCount = 0;
+  newFacts.forEach(text => {
+    // Check for duplicates (case-insensitive and trimmed)
+    const exists = currentMemories.some(m => {
+      const mText = typeof m === 'object' ? m.text : m;
+      return mText.toLowerCase().trim() === text.toLowerCase().trim();
+    });
+    
+    if (!exists) {
+      currentMemories.push({ text, time: timeStr });
+      addedCount++;
+    }
+  });
+  
+  if (addedCount > 0) {
+    saveConfig({ ...cfg, memories: currentMemories });
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('config-updated', { ...cfg, memories: currentMemories });
+    }
+  }
+  return addedCount;
+});
+
 ipcMain.on('open-settings', () => openSettingsWindow());
 
 // ─── IPC: System State ────────────────────────────────────────────────────────

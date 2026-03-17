@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Config
   getConfig:    () => ipcRenderer.invoke('get-config'),
   saveConfig:   (cfg) => ipcRenderer.invoke('save-config', cfg),
+  appendMemories: (facts) => ipcRenderer.invoke('append-memories', facts),
   openSettings: () => ipcRenderer.send('open-settings'),
 
   // Listen for config updates pushed from main process

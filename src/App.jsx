@@ -85,17 +85,8 @@ function App() {
     const newFacts = matches.map(m => m[1].trim());
     const cleanReply = reply.replace(memoryRegex, '').trim();
 
-    // Update config
-    const cfg = await window.electronAPI.getConfig();
-    const now = new Date();
-    const timeStr = `${now.getMonth() + 1}/${now.getDate()} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-    
-    const newMemories = [
-      ...(cfg.memories || []),
-      ...newFacts.map(text => ({ text, time: timeStr }))
-    ];
-
-    await window.electronAPI.saveConfig({ ...cfg, memories: newMemories });
+    // Call atomic append in main process
+    await window.electronAPI.appendMemories(newFacts);
     return cleanReply;
   };
 
@@ -147,7 +138,10 @@ function App() {
   };
 
   const addMessage = (text, sender) => {
-    setMessages([{ text, sender }]);
+    setMessages(prev => {
+      const newLogs = [...prev, { text, sender }];
+      return newLogs.slice(-5); // Keep last 5 messages
+    });
   };
 
   return (
