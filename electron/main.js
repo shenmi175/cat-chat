@@ -54,6 +54,7 @@ let mainWindow;
 let settingsWindow;
 let docWindow;
 let historyWindow;
+let sensoryWindow;
 let isDev;
 
 // Detect preload filename (dev = .mjs, prod = .js)
@@ -87,6 +88,8 @@ function createWindow() {
 
   // Right-click context menu
   const ctxMenu = Menu.buildFromTemplate([
+    { label: '👁️ 开启感知中心', click: () => openSensoryWindow() },
+    { type: 'separator' },
     { label: '功能使用文档', click: () => openDocWindow() },
     { label: '查看历史记录', click: () => openHistoryWindow() },
     { label: '打开设置', click: () => openSettingsWindow() },
@@ -164,6 +167,37 @@ function openDocWindow() {
 
   docWindow.on('closed', () => {
     docWindow = null;
+  });
+}
+
+function openSensoryWindow() {
+  if (sensoryWindow && !sensoryWindow.isDestroyed()) {
+    sensoryWindow.focus();
+    return;
+  }
+
+  sensoryWindow = new BrowserWindow({
+    width: 400,
+    height: 600,
+    title: '感知中心',
+    resizable: true,
+    webPreferences: {
+      preload: getPreloadPath('preload'),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  });
+
+  sensoryWindow.setMenuBarVisibility(false);
+
+  if (process.env.VITE_DEV_SERVER_URL) {
+    sensoryWindow.loadURL(`${process.env.VITE_DEV_SERVER_URL}#sensory`);
+  } else {
+    sensoryWindow.loadFile(path.join(__dirname, '../dist/index.html'), { hash: 'sensory' });
+  }
+
+  sensoryWindow.on('closed', () => {
+    sensoryWindow = null;
   });
 }
 

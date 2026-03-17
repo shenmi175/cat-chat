@@ -2,21 +2,6 @@ import React, { useState, useEffect } from 'react';
 import './Doc.css';
 
 function DocPage() {
-  const [sysState, setSysState] = useState(null);
-
-  useEffect(() => {
-    const fetchState = async () => {
-      try {
-        const state = await window.electronAPI.getSystemState();
-        if (state) setSysState(state);
-      } catch (err) {
-        console.error('Failed to fetch system state:', err);
-      }
-    };
-    fetchState();
-    const timer = setInterval(fetchState, 5000);
-    return () => clearInterval(timer);
-  }, []);
 
   return (
     <div className="doc-root">
@@ -29,29 +14,6 @@ function DocPage() {
       </header>
 
       <div className="doc-body">
-        {/* Real-time Dashboard Panel */}
-        <section className="sensory-dashboard glass-panel fade-in">
-          <div className="sensory-grid">
-            <div className="sensory-item">
-              <span className="label">当前软件</span>
-              <span className="value">{sysState?.activeApp || '获取中...'}</span>
-            </div>
-            <div className="sensory-item">
-              <span className="label">窗口标题</span>
-              <span className="value">{sysState?.activeWindow || '无'}</span>
-            </div>
-            <div className="sensory-item">
-              <span className="label">系统电量</span>
-              <span className="value">
-                {sysState?.hasBattery ? `${sysState.batteryPercent}%` : '无需电池'}
-              </span>
-            </div>
-            <div className="sensory-item">
-              <span className="label">本地时间</span>
-              <span className="value">{sysState?.time || '--:--'}</span>
-            </div>
-          </div>
-        </section>
 
         {/* Feature Grid */}
         <div className="feature-grid">

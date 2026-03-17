@@ -4,6 +4,7 @@ import App from './App.jsx'
 import SettingsPage from './SettingsPage.jsx'
 import DocPage from './DocPage.jsx'
 import HistoryPage from './HistoryPage.jsx'
+import SensoryPage from './SensoryPage.jsx'
 import './index.css'
 
 const Main = () => {
@@ -18,6 +19,7 @@ const Main = () => {
   if (route.startsWith('#settings')) return <SettingsPage />;
   if (route.startsWith('#doc')) return <DocPage />;
   if (route.startsWith('#history')) return <HistoryPage />;
+  if (route.startsWith('#sensory')) return <SensoryPage />;
   return <App />;
 };
 
