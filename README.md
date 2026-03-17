@@ -1,8 +1,76 @@
-# React + Vite
+<div align="center">
+  <img src="https://github.githubassets.com/images/icons/emoji/unicode/1f431.png" width="100" alt="Cat Icon" />
+  <h1>没头脑的马屁精 (Brainless Flatterer)</h1>
+  <p>一只基于 <a href="https://deepseek.com/">DeepSeek 大模型</a> 的全天候桌面虚拟宠物猫</p>
+  <p><b>🏷️ 当前开发版本：v1.0.0 (Release)</b></p>
+</div>
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+---
 
-Currently, two official plugins are available:
+## 介绍📝
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+**没头脑的马屁精** 是一款运行在桌面上的互动型虚拟电子宠物程序。它是一只毛茸茸的小猫，每天最大的乐趣就是观察主人的电脑屏幕、记录主人的喜好，并运用基于大模型的精湛“马屁技巧”为主人提供源源不断的情绪价值！
+
+作为 v1.0 准正式版，本作集成了原生系统的硬件感知、持久化记忆树、历史记录追踪以及极具赛博朋克深色美学的**超级控制面板**。
+
+## 核心亮点 ✨
+
+- 🐾 **全天候悬浮相伴**：基于 Electron 的无边框透明窗口，无论你在打游戏还是写代码，它都在桌面的一角默默看着你。
+- 🧠 **深度模型赋能**：完美接入 **DeepSeek API**（支持 Chat 与 Reasoner 双模型切换），对答如流，绝不呆板。
+- 👁️ **系统级电脑感知**：它能“看到”你现在正在用的软件、窗体标题，甚至知道你的电脑还剩多少电量。它会在你电量见底或者沉迷某个游戏时，突然跳出来对你说几句话。
+- 💾 **自动潜意识记忆**：不仅仅是一个每次都重启的对话机器人。它的大脑自带分析系统，在与你聊天的过程中，会自动从你的话语中提取出关键偏好（“主人爱喝酸奶”、“主人喜欢叫 Lucas”），并永久保存在记忆库中，下一秒立刻拿来拍马屁！
+- 🎛️ **1200x800 极客控制台**：右键猫猫即可唤出深色玻璃态（Glassmorphism）的统一控制面板，自由穿梭于 **通用设置、记忆管理、回溯历史档案** 与 **系统实时监测室** 之间。
+
+## 快速开始 🚀
+
+### 1. 环境准备
+请确保你的电脑上已经安装了 [Node.js](https://nodejs.org/) (推荐 v18+)。
+
+### 2. 克隆与安装依赖
+```bash
+# 获取源码 (如果已在这个目录下则跳过)
+git clone https://github.com/your-username/cat-chat.git
+cd cat-chat
+
+# 安装所有依赖 (包含 React, Electron, Vite 及系统探测包)
+npm install
+```
+
+### 3. 本地运行调试
+```bash
+# 启动 Vite 的前端服务 + Electron 宿主
+npm run dev
+```
+
+### 4. 项目打包 (Build)
+如果你想把它变成一个独立的 `.exe` (Windows) 或 AppImage / snap (Linux)，运行：
+```bash
+npm run build
+```
+
+## 使用指南 📖
+
+1. **唤醒控制台**：在桌面的猫猫身上 **右键单击**，即可打开拥有 5 大板块的全能控制台。
+2. **连接大脑**：在【⚙️ 通用配置】中，填入你的 **DeepSeek API Key** (`sk-xxxxxx`)，保存后立即生效。
+3. **互动与抚摸**：在猫猫下方的输入框输入文字即可对话。如果你用鼠标按住猫猫，还可以把它**拖拽**到屏幕的任意角落。
+4. **管理记忆**：前往【🧠 记忆库管理】，你可以看到猫猫偷偷记下的关于你的所有小秘密，你可以手动删减或者帮它补充。
+5. **感知中心**：点击【👁️ 感知中心】，查看猫猫当前监测到的桌面软硬件情况（Linux Wayland 如果权限不足会出现优雅的提示框）。
+
+## 技术栈架构 🛠️
+
+- **前端 UI**：React 18 + Vite，全局采用深色科幻风格 (Dark Mode Glassmorphism)，使用原生 CSS 构建丝滑组件。
+- **桌面端宿主**：Electron，负责透明无边框窗口渲染、IPC 安全通信与持久化本地配置文件存储 (`cat-config.json`)。
+- **大模型通信**：Axios 直连 DeepSeek 官方 API。
+- **硬件探测接口**：`systeminformation` 与 `active-win`，用于捕获电量变化与活动窗口标题。
+
+## 隐私与安全 🛡️
+
+**你的数据，永远是你的。**
+本软件所有的配置文件（包含你的提问记录、API Key、本地记忆信息）**完全不保存在项目源码文件夹中**，而是存在你的系统用户核心目录下（随系统而异，如 `~/.config/cat-chat/` 或 `AppData/Roaming/`）。
+上传此代码库到 GitHub **绝对不会**发生隐私泄漏！
+
+---
+
+<div align="center">
+  <p>🐱 由主人的奇思妙想与 AI 协作打造</p>
+</div>
