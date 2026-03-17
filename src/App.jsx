@@ -77,6 +77,28 @@ function App() {
     return () => clearInterval(intervalId);
   }, []);
 
+  const extractAndSaveMemories = async (reply) => {
+    const memoryRegex = /\[MEMORY:\s*(.*?)\]/g;
+    const matches = [...reply.matchAll(memoryRegex)];
+    if (matches.length === 0) return reply;
+
+    const newFacts = matches.map(m => m[1].trim());
+    const cleanReply = reply.replace(memoryRegex, '').trim();
+
+    // Update config
+    const cfg = await window.electronAPI.getConfig();
+    const now = new Date();
+    const timeStr = `${now.getMonth() + 1}/${now.getDate()} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    
+    const newMemories = [
+      ...(cfg.memories || []),
+      ...newFacts.map(text => ({ text, time: timeStr }))
+    ];
+
+    await window.electronAPI.saveConfig({ ...cfg, memories: newMemories });
+    return cleanReply;
+  };
+
   const triggerProactiveTalk = async (systemData) => {
     setIsThinking(true);
     setCatState('thinking');
@@ -87,7 +109,8 @@ function App() {
       }
       prompt += `。这是猫猫自动触发的对话，请根据你的性格主动对主人说一句话)`;
       const reply = await generateReply(prompt, true);
-      addMessage(reply, 'cat');
+      const cleanReply = await extractAndSaveMemories(reply);
+      addMessage(cleanReply, 'cat');
       setCatState('happy');
       setTimeout(() => setCatState('idle'), 5000);
     } catch (e) {
@@ -112,7 +135,8 @@ function App() {
 
       const prompt = `主人说：${text}${stateContext}`;
       const reply = await generateReply(prompt, false);
-      addMessage(reply, 'cat');
+      const cleanReply = await extractAndSaveMemories(reply);
+      addMessage(cleanReply, 'cat');
       setCatState('happy');
     } catch (e) {
       addMessage("呜呜喵...我脑子卡壳了连不上网了...", 'cat');

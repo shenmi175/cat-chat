@@ -32,6 +32,9 @@ export async function generateReply(userPrompt, isProactive = false) {
     systemPrompt += `\n\n【你一定要记住的主人信息（记忆库）】：\n${memoryStrings.join('\n')}`;
   }
 
+  // Add auto-memory trigger instruction
+  systemPrompt += `\n\n【重要指令】：如果你从主人的话语中获知了关于主人的新信息（如姓名、爱好、习惯等），请在回复的最后加上 [MEMORY: 信息内容]。你可以一次记录多条。`;
+
   if (!apiKey) {
     return isProactive
       ? '哇！主人连 API Key 都没配就想让我说话，真是太有个性了喵！'
