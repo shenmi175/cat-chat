@@ -1,8 +1,6 @@
 .sensory-root {
   display: flex;
   flex-direction: column;
-  height: 100%; /* Embedded inside content-pane */
-  overflow: hidden;
 }
 
 .sensory-header {

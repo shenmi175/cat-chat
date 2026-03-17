@@ -1,8 +1,6 @@
 .doc-root {
   display: flex;
   flex-direction: column;
-  height: 100%; /* Embedded inside content-pane */
-  overflow: hidden;
 }
 
 .doc-header {

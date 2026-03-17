@@ -16,10 +16,8 @@ const Main = () => {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  if (route.startsWith('#settings')) return <SettingsPage />;
-  if (route.startsWith('#doc')) return <DocPage />;
-  if (route.startsWith('#history')) return <HistoryPage />;
-  if (route.startsWith('#sensory')) return <SensoryPage />;
+  const isDashboardRoute = ['#settings', '#doc', '#history', '#sensory', '#general', '#memory'].some(r => route.startsWith(r));
+  if (isDashboardRoute) return <SettingsPage />;
   return <App />;
 };
 
