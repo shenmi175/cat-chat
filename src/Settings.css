@@ -95,9 +95,16 @@
   letter-spacing: 0.5px;
 }
 
-.settings-input-row, .memory-input-row {
+.settings-input-row {
   display: flex;
   gap: 10px;
+  max-width: 100%;
+}
+
+.memory-input-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 24px;
 }
 
 .settings-input, .settings-select, .settings-textarea {
@@ -138,8 +145,8 @@
 /* Memory UI */
 .memory-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); /* Larger min-width */
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Back to 280px for better 2-column fit in 900px window */
+  gap: 16px;
   margin-top: 24px;
 }
 

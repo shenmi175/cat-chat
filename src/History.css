@@ -8,36 +8,36 @@
 
 .history-header {
   text-align: center;
-  padding: 40px 20px 30px;
+  padding: 20px 20px 15px; /* Reduced header padding */
   background: rgba(0, 0, 0, 0.2);
   border-bottom: 1px solid var(--border-glass);
 }
 
 .history-icon { 
-  font-size: 40px; 
-  margin-bottom: 12px; 
+  font-size: 32px; /* Smaller icon */
+  margin-bottom: 8px; 
   display: block;
 }
 
 .history-header h1 {
-  font-size: 24px;
+  font-size: 18px; /* Smaller title */
   font-weight: 700;
   color: var(--text-bright);
 }
 
 .history-header p {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-dim);
-  margin-top: 5px;
+  margin-top: 4px;
 }
 
 .history-list {
   flex: 1;
   overflow-y: auto;
-  padding: 40px; /* Increased padding */
+  padding: 24px; /* Reduced padding from 40px to 24px */
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 20px; /* Reduced gap between messages */
   position: relative;
   padding-bottom: 120px;
 }
@@ -47,7 +47,7 @@
 .history-list::before {
   content: '';
   position: absolute;
-  left: 49px; 
+  left: 43px; /* Adjusted alignment for 24px padding + 20px halfway through avatar */
   top: 0; 
   bottom: 0;
   width: 2px;
@@ -56,8 +56,8 @@
 
 .history-item {
   display: flex;
-  gap: 24px; /* More gap from avatar to bubble */
-  max-width: 90%; /* Use more space */
+  gap: 15px; /* Reduced gap from avatar to bubble */
+  max-width: 90%; 
   position: relative;
   z-index: 1;
   animation: messageSlideIn 0.4s ease-out;

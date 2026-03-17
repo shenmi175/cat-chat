@@ -112,8 +112,8 @@ function openSettingsWindow() {
   }
 
   settingsWindow = new BrowserWindow({
-    width: 600,
-    height: 700,
+    width: 900,
+    height: 750,
     title: '猫猫设置',
     resizable: true,
     webPreferences: {
@@ -143,8 +143,8 @@ function openDocWindow() {
   }
 
   docWindow = new BrowserWindow({
-    width: 500,
-    height: 600,
+    width: 800,
+    height: 700,
     title: '功能文档',
     resizable: true,
     webPreferences: {
@@ -264,8 +264,8 @@ function openHistoryWindow() {
   }
 
   historyWindow = new BrowserWindow({
-    width: 400,
-    height: 600,
+    width: 500,
+    height: 700,
     title: '对话历史',
     backgroundColor: '#1a1b26',
     webPreferences: {
