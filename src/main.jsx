@@ -4,7 +4,6 @@ import App from './App.jsx'
 import SettingsPage from './SettingsPage.jsx'
 import DocPage from './DocPage.jsx'
 import HistoryPage from './HistoryPage.jsx'
-import './index.css'
 
 const Main = () => {
   const [route, setRoute] = useState(window.location.hash || '#');
