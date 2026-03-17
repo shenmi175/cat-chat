@@ -17,7 +17,14 @@ export async function generateReply(userPrompt, isProactive = false) {
   const cfg = await getRuntimeConfig();
   const apiKey = (cfg.apiKey || '').trim();
   const model  = cfg.model || 'deepseek-chat';
-  const systemPrompt = cfg.systemPrompt || '';
+  const rawSystemPrompt = cfg.systemPrompt || '';
+  const memories = cfg.memories || [];
+
+  // Combine system prompt with memories
+  let systemPrompt = rawSystemPrompt;
+  if (memories.length > 0) {
+    systemPrompt += `\n\n【你一定要记住的主人信息（记忆库）】：\n${memories.map((m, i) => `${i+1}. ${m}`).join('\n')}`;
+  }
 
   if (!apiKey) {
     return isProactive

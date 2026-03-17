@@ -9,6 +9,7 @@ function App() {
   const [isThinking, setIsThinking] = useState(false);
   const [catState, setCatState] = useState('idle'); // idle, happy, thinking
   const lastStateHash = useRef('');
+  const lastTriggerReason = useRef(''); // Track the REASON for the last proactive talk
 
   // --- Drag: VM & Wayland robust tracking ---
   // In Linux VMs, pointer capture on frameless windows may instantly break.
@@ -54,12 +55,15 @@ function App() {
       const state = await getSystemState();
       if (!state) return;
 
-      // Trigger proactive talk if the actively used application changes or charging status changes
+      // Trigger proactive talk if crucial state changes (App or Charging status)
+      const currentStateReason = state.activeApp ? `app:${state.activeApp}` : (state.batteryPercent < 20 ? 'low_battery' : 'normal');
       const stateHash = `${state.activeApp}-${state.isCharging}`;
+
       if (lastStateHash.current !== stateHash && lastStateHash.current !== '') {
-        // Only trigger if we have an active app to talk about, or if it's a battery change
-        if (state.activeApp || state.batteryPercent !== lastStateHash.current.split('-')[1]) {
-          triggerProactiveTalk(state);
+        // Only trigger if the core reason changed (don't repeat "low battery" every 10s)
+        if (currentStateReason !== lastTriggerReason.current) {
+           triggerProactiveTalk(state);
+           lastTriggerReason.current = currentStateReason;
         }
       }
       lastStateHash.current = stateHash;

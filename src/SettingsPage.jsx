@@ -7,10 +7,11 @@ const MODELS = [
 ];
 
 function SettingsPage() {
-  const [cfg, setCfg] = useState({ apiKey: '', model: 'deepseek-chat', systemPrompt: '' });
+  const [cfg, setCfg] = useState({ apiKey: '', model: 'deepseek-chat', systemPrompt: '', memories: [] });
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showKey, setShowKey] = useState(false);
+  const [newMemory, setNewMemory] = useState('');
 
   useEffect(() => {
     window.electronAPI?.getConfig().then((c) => {
@@ -23,6 +24,18 @@ function SettingsPage() {
     await window.electronAPI?.saveConfig(cfg);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
+  };
+
+  const addMemory = () => {
+    if (!newMemory.trim()) return;
+    setCfg({ ...cfg, memories: [...(cfg.memories || []), newMemory.trim()] });
+    setNewMemory('');
+  };
+
+  const removeMemory = (index) => {
+    const newMems = [...(cfg.memories || [])];
+    newMems.splice(index, 1);
+    setCfg({ ...cfg, memories: newMems });
   };
 
   if (loading) return <div className="settings-loading">加载配置中…</div>;
@@ -79,12 +92,36 @@ function SettingsPage() {
           <label className="settings-label">系统提示词（猫猫的性格）</label>
           <textarea
             className="settings-textarea"
-            rows={10}
+            rows={5}
             value={cfg.systemPrompt}
             onChange={(e) => setCfg({ ...cfg, systemPrompt: e.target.value })}
             placeholder="描述猫猫的性格和行为方式…"
           />
           <p className="settings-hint">修改提示词可以改变猫猫的说话风格和性格特点。</p>
+        </section>
+
+        {/* Memory Library */}
+        <section className="settings-section">
+          <label className="settings-label">猫猫的记忆库（小卡片）</label>
+          <div className="memory-input-row">
+            <input
+              className="settings-input"
+              value={newMemory}
+              onChange={(e) => setNewMemory(e.target.value)}
+              placeholder="例如：主人喜欢的食物是可乐..."
+              onKeyDown={(e) => e.key === 'Enter' && addMemory()}
+            />
+            <button className="settings-toggle-btn" onClick={addMemory}>➕ 添加</button>
+          </div>
+          <div className="memory-list">
+            {(cfg.memories || []).map((mem, i) => (
+              <div key={i} className="memory-item">
+                <span className="memory-text">{mem}</span>
+                <button className="memory-delete-btn" onClick={() => removeMemory(i)}>×</button>
+              </div>
+            ))}
+          </div>
+          <p className="settings-hint">猫猫会记住这些信息，并在聊天中引用它们。</p>
         </section>
       </div>
 
