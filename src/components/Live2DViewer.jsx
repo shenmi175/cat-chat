@@ -5,7 +5,9 @@ import { Live2DModel } from 'pixi-live2d-display';
 // Expose PIXI to window so pixi-live2d-display can find it
 window.PIXI = PIXI;
 
-const TORORO_URL = 'https://cdn.jsdelivr.net/gh/Eikanya/Live2d-model/Live2D/Samples/tororo/tororo.model3.json';
+// 1. 下载模型文件后，请放置在项目的 public/live2d/tororo/ 文件夹下
+// 2. 所需文件包括：.model3.json, .moc3, .physics3.json 以及 textures 文件夹
+const TORORO_URL = '/live2d/tororo/tororo.model3.json';
 
 const Live2DViewer = ({ catState, isDragging }) => {
   const canvasRef = useRef(null);
