@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, screen, Menu } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
@@ -61,7 +61,6 @@ function getPreloadPath(name) {
 }
 
 function createWindow() {
-// ... lines 63-84 (omitted for brevity in replacement chunk)
   mainWindow = new BrowserWindow({
     width: 300,
     height: 300,
