@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import ChatBubble from './components/ChatBubble';
+import Live2DViewer from './components/Live2DViewer';
 import { getSystemState } from './utils/systemMonitor';
 import { generateReply } from './utils/deepseek';
 import './App.css';
@@ -13,21 +14,18 @@ function App() {
   const prevResponseRef = useRef([]); // Anti-repetition buffer
 
   // --- Drag: VM & Wayland robust tracking ---
-  // In Linux VMs, pointer capture on frameless windows may instantly break.
-  // Instead, we track screenX/screenY manually via global mousemove exactly
-  // while the mouse is down.
-  const isDragging = useRef(false);
+  const [isDragging, setIsDragging] = useState(false);
   const lastPos = useRef({ x: 0, y: 0 });
 
   const handleMouseDown = useCallback((e) => {
     if (e.button !== 0) return;
-    isDragging.current = true;
+    setIsDragging(true);
     lastPos.current = { x: e.screenX, y: e.screenY };
   }, []);
 
   useEffect(() => {
     const handleMouseMove = (e) => {
-      if (!isDragging.current) return;
+      if (!isDragging) return;
       
       const dx = e.screenX - lastPos.current.x;
       const dy = e.screenY - lastPos.current.y;
@@ -39,7 +37,7 @@ function App() {
     };
 
     const handleMouseUp = () => {
-      isDragging.current = false;
+      setIsDragging(false);
     };
 
     window.addEventListener('mousemove', handleMouseMove);
@@ -48,7 +46,7 @@ function App() {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, []);
+  }, [isDragging]);
 
   // --- System state polling ---
   useEffect(() => {
@@ -181,11 +179,7 @@ function App() {
         className="cat-area" 
         onMouseDown={handleMouseDown}
       >
-        <div className={`cat-body ${catState}`}>
-          (=^･ω･^=)
-          <div className="ears">/\_/\</div>
-          <div className="eyes">o  o</div>
-        </div>
+        <Live2DViewer catState={catState} isDragging={isDragging} />
       </div>
 
       <div className="chat-area no-drag">

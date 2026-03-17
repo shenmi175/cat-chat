@@ -28,59 +28,21 @@ html, body, #root {
 /* --- The Cat --- */
 .cat-area {
   cursor: grab;
-  margin-bottom: 20px;
+  margin-bottom: -40px; /* Pull chat closer to model */
   position: relative;
-  pointer-events: auto; /* Must receive mouse events for IPC-based drag */
-  user-select: none;    /* Prevent text selection while dragging */
+  pointer-events: auto;
+  user-select: none;
+  width: 300px;
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .cat-area:active {
   cursor: grabbing;
 }
 
-.cat-body {
-  width: 120px;
-  height: 100px;
-  background-color: #ffb7b2;
-  border-radius: 50% 50% 40% 40%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  color: #d32f2f;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-  position: relative;
-  transition: all 0.3s ease;
-}
-
-/* Animations based on state */
-.cat-body.idle {
-  animation: breathe 3s infinite ease-in-out;
-}
-
-.cat-body.happy {
-  animation: bounce 0.5s ease;
-}
-
-.cat-body.thinking {
-  background-color: #ffecd2;
-}
-
-@keyframes breathe {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-}
-
-@keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-20px); }
-}
-
-.ears {
-  position: absolute;
-  top: -20px;
-  font-size: 24px;
-}
 
 /* --- Chat & UI --- */
 .chat-area {

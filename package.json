@@ -12,6 +12,8 @@
   "dependencies": {
     "active-win": "^9.0.0",
     "axios": "^1.13.6",
+    "pixi-live2d-display": "^0.4.0",
+    "pixi.js": "^7.4.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "systeminformation": "^5.31.4"
