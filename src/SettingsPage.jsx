@@ -7,7 +7,13 @@ const MODELS = [
 ];
 
 function SettingsPage() {
-  const [cfg, setCfg] = useState({ apiKey: '', model: 'deepseek-chat', systemPrompt: '', memories: [] });
+  const [cfg, setCfg] = useState({ 
+    apiKey: '', 
+    model: 'deepseek-chat', 
+    systemPrompt: '', 
+    memories: [] 
+  });
+  const [activeTab, setActiveTab] = useState('general'); // 'general' or 'memory'
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showKey, setShowKey] = useState(false);
@@ -15,13 +21,12 @@ function SettingsPage() {
 
   useEffect(() => {
     window.electronAPI?.getConfig().then((c) => {
-      setCfg(c);
+      if (c) setCfg(c);
       setLoading(false);
     });
 
-    // Listen for background updates (e.g. AI auto-extracting memories)
     const cleanup = window.electronAPI?.onConfigUpdated((newCfg) => {
-      setCfg(newCfg);
+      if (newCfg) setCfg(newCfg);
     });
     return () => {
       if (typeof cleanup === 'function') cleanup();
@@ -38,12 +43,7 @@ function SettingsPage() {
     if (!newMemory.trim()) return;
     const now = new Date();
     const timeStr = `${now.getMonth() + 1}/${now.getDate()} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-    
-    const newEntry = {
-      text: newMemory.trim(),
-      time: timeStr
-    };
-    
+    const newEntry = { text: newMemory.trim(), time: timeStr };
     setCfg({ ...cfg, memories: [...(cfg.memories || []), newEntry] });
     setNewMemory('');
   };
@@ -51,150 +51,129 @@ function SettingsPage() {
   const removeMemory = (index) => {
     const newMems = [...(cfg.memories || [])];
     newMems.splice(index, 1);
-    setCfg({ ...cfg, memories: newMems   const [activeTab, setActiveTab] = useState('general'); // 'general' or 'memory'
+    setCfg({ ...cfg, memories: newMems });
+  };
 
-  if (loading) return <div className="settings-loading">加载配置中…</div>;
+  if (loading) return <div className="settings-loading">调取配置中心...</div>;
 
   return (
     <div className="settings-root">
-      <aside className="settings-sidebar">
+      <aside className="settings-sidebar glass-panel">
         <div className="sidebar-header">
-          <span className="sidebar-logo">🐱</span>
-          <h3>猫猫控制台</h3>
+          <span className="sidebar-cat">🐱</span>
+          <h2>猫猫控制台</h2>
         </div>
         <nav className="sidebar-nav">
           <button 
             className={`nav-item ${activeTab === 'general' ? 'active' : ''}`}
             onClick={() => setActiveTab('general')}
           >
-            <span className="nav-icon">⚙️</span> 基础配置
+            ⚙️ 通用配置
           </button>
           <button 
             className={`nav-item ${activeTab === 'memory' ? 'active' : ''}`}
             onClick={() => setActiveTab('memory')}
           >
-            <span className="nav-icon">🧠</span> 记忆档案
+            🧠 记忆库管理
           </button>
         </nav>
         <div className="sidebar-footer">
           <button className="settings-save-btn" onClick={handleSave}>
-            {saved ? '✅ 已保存' : '💾 保存设置'}
+            {saved ? '✅ 已保存' : '💾 保存所有'}
           </button>
         </div>
       </aside>
 
-      <main className="settings-main">
-        <header className="settings-content-header">
-          <h1>{activeTab === 'general' ? '基础配置' : '记忆档案库'}</h1>
-          <p>{activeTab === 'general' ? '配置 AI 模型和猫猫的性格' : '管理猫猫记下的关于主人的点点滴滴'}</p>
-        </header>
-
-        <div className="settings-body">
-          {activeTab === 'general' && (
-            <>
-              {/* API Key */}
-              <section className="settings-section">
-                <label className="settings-label">DeepSeek API Key</label>
-                <div className="settings-input-row">
-                  <input
-                    className="settings-input"
-                    type={showKey ? 'text' : 'password'}
-                    value={cfg.apiKey}
-                    placeholder="sk-xxxxxxxxxxxxxxxx"
-                    onChange={(e) => setCfg({ ...cfg, apiKey: e.target.value })}
-                  />
-                  <button
-                    className="settings-toggle-btn"
-                    onClick={() => setShowKey((v) => !v)}
-                  >
-                    {showKey ? '🙈' : '👁️'}
-                  </button>
-                </div>
-                <p className="settings-hint">
-                  前往 <a href="#" onClick={() => window.open('https://platform.deepseek.com')}>platform.deepseek.com</a> 获取
-                </p>
-              </section>
-
-              {/* Model */}
-              <section className="settings-section">
-                <label className="settings-label">对话模型</label>
-                <select
-                  className="settings-select"
-                  value={cfg.model}
-                  onChange={(e) => setCfg({ ...cfg, model: e.target.value })}
-                >
-                  {MODELS.map((m) => (
-                    <option key={m.value} value={m.value}>{m.label}</option>
-                  ))}
-                </select>
-              </section>
-
-              {/* System Prompt */}
-              <section className="settings-section">
-                <label className="settings-label">人格预设 (System Prompt)</label>
-                <textarea
-                  className="settings-textarea"
-                  rows={8}
-                  value={cfg.systemPrompt}
-                  onChange={(e) => setCfg({ ...cfg, systemPrompt: e.target.value })}
-                  placeholder="描述猫猫的性格 and 行为方式…"
+      <main className="settings-content">
+        {activeTab === 'general' ? (
+          <div className="content-pane fade-in">
+            <header className="content-header">
+              <h1>通用配置</h1>
+              <p>调整 AI 大脑的核心参数</p>
+            </header>
+            
+            <section className="settings-section glass-card">
+              <label className="settings-label">DeepSeek API Key</label>
+              <div className="settings-input-row">
+                <input
+                  className="settings-input"
+                  type={showKey ? 'text' : 'password'}
+                  value={cfg.apiKey || ''}
+                  onChange={(e) => setCfg({ ...cfg, apiKey: e.target.value })}
+                  placeholder="请输入您的 sk-..."
                 />
-              </section>
-            </>
-          )}
+                <button className="settings-toggle-btn" onClick={() => setShowKey(!showKey)}>
+                  {showKey ? '🙈' : '👁️'}
+                </button>
+              </div>
+            </section>
 
-          {activeTab === 'memory' && (
-            <section className="settings-section full-height">
-              <label className="settings-label">录入新记忆</label>
+            <section className="settings-section glass-card">
+              <label className="settings-label">思考模型</label>
+              <select
+                className="settings-select"
+                value={cfg.model || 'deepseek-chat'}
+                onChange={(e) => setCfg({ ...cfg, model: e.target.value })}
+              >
+                {MODELS.map(m => (
+                  <option key={m.value} value={m.value}>{m.label}</option>
+                ))}
+              </select>
+            </section>
+
+            <section className="settings-section glass-card">
+              <label className="settings-label">性格与行为准则</label>
+              <textarea
+                className="settings-textarea"
+                rows={8}
+                value={cfg.systemPrompt || ''}
+                onChange={(e) => setCfg({ ...cfg, systemPrompt: e.target.value })}
+                placeholder="它该是一只什么样的猫？"
+              />
+            </section>
+          </div>
+        ) : (
+          <div className="content-pane fade-in">
+            <header className="content-header">
+              <h1>记忆库管理</h1>
+              <p>这里存放着猫猫记下的关于你的一切</p>
+            </header>
+
+            <div className="settings-section glass-card">
               <div className="memory-input-row">
                 <input
                   className="settings-input"
                   value={newMemory}
                   onChange={(e) => setNewMemory(e.target.value)}
-                  placeholder="例如：主人喜欢的食物是小番茄..."
+                  placeholder="手动添加一条记忆..."
                   onKeyDown={(e) => e.key === 'Enter' && addMemory()}
                 />
-                <button className="settings-toggle-btn" onClick={addMemory}>➕ 添加</button>
+                <button className="memory-add-btn" onClick={addMemory}>添加</button>
               </div>
-              
-              <div className="memory-scroll-area">
-                <div className="memory-list">
-                  {(cfg.memories || []).length === 0 ? (
-                    <div className="empty-memory">暂无记忆，多跟我聊天试试喵~</div>
-                  ) : (
-                    (cfg.memories || []).map((mem, i) => {
-                      const isObj = typeof mem === 'object' && mem !== null;
-                      const text = isObj ? mem.text : mem;
-                      const time = isObj ? mem.time : '';
-                      return (
-                        <div key={i} className="memory-item">
-                          <div className="memory-content">
-                            <span className="memory-text">{text}</span>
-                            {time && <span className="memory-time">{time}</span>}
-                          </div>
-                          <button className="memory-delete-btn" onClick={() => removeMemory(i)}>×</button>
+              <div className="memory-grid">
+                {(cfg.memories || []).length > 0 ? (
+                  cfg.memories.map((mem, i) => {
+                    const isObj = typeof mem === 'object' && mem !== null;
+                    const text = isObj ? mem.text : mem;
+                    const time = isObj ? mem.time : '';
+                    return (
+                      <div key={i} className="memory-card">
+                        <div className="memory-card-body">
+                          <span className="memory-text">{text}</span>
+                          {time && <span className="memory-time">{time}</span>}
                         </div>
-                      );
-                    })
-                  )}
-                </div>
+                        <button className="memory-card-del" onClick={() => removeMemory(i)}>×</button>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="no-memories">它暂时还没记住任何事情喵~</div>
+                )}
               </div>
-            </section>
-          )}
-        </div>
+            </div>
+          </div>
+        )}
       </main>
-    </div>
-  );
-}
-�并在聊天中引用它们。</p>
-        </section>
-      </div>
-
-      <footer className="settings-footer">
-        <button className="settings-save-btn" onClick={handleSave}>
-          {saved ? '✅ 已保存！' : '💾 保存设置'}
-        </button>
-      </footer>
     </div>
   );
 }
