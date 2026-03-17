@@ -67,3 +67,36 @@ body {
   border-color: rgba(122, 162, 247, 0.3);
   transform: translateY(-2px);
 }
+
+/* Global Form Styling */
+input, select, textarea {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border-glass);
+  border-radius: 8px;
+  color: var(--text-bright);
+  font-family: inherit;
+  font-size: 14px;
+  padding: 10px 12px;
+  transition: var(--transition);
+  outline: none;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--primary);
+  background: rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 0 2px rgba(122, 162, 247, 0.15);
+}
+
+button {
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.fade-in {
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
