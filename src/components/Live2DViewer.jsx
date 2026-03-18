@@ -14,13 +14,17 @@ const Live2DViewer = ({ catState, isDragging, modelUrl }) => {
   const modelRef = useRef(null);
   const appRef = useRef(null);
   const [error, setError] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
 
   // Initialize PIXI once
   useEffect(() => {
     console.log('Live2D: Initializing PixiJS Engine...');
     
     if (!window.Live2DCubismCore) {
-      console.error('Live2D: Cubism Core (v3) missing!');
+      console.error('Live2D: Cubism Core (v3) missing! Please download and place in public/live2dcubismcore.min.js');
+      setError('驱动缺失 (Core missing)');
+      setLoading(false);
+      return;
     }
 
     const app = new PIXI.Application({
@@ -79,16 +83,23 @@ const Live2DViewer = ({ catState, isDragging, modelUrl }) => {
         
         model.on('hit', (hitAreas) => {
           console.log('Live2D: Hit:', hitAreas);
-          if (hitAreas.includes('Head') || hitAreas.includes('head')) {
-            model.motion('Tap');
-            // Katou v2 might use indexed motions if names aren't mapped
-            if (modelUrl.includes('katou')) model.motion('mtn/01_idle.mtn'); 
+          const isKatou = modelUrl.includes('katou');
+          // Support both v3 ('Head') and v2 ('head') naming
+          if (hitAreas.some(h => h.toLowerCase() === 'head')) {
+            if (isKatou) {
+              model.motion('mtn/I_FUN.mtn'); // Happy reaction for Katou
+            } else {
+              model.motion('Tap');
+            }
           }
         });
+
+        setLoading(false);
 
       } catch (e) {
         console.error('Live2D: Load error:', e);
         setError(e.message || 'Load failed');
+        setLoading(false);
       }
     })();
   }, [modelUrl]);
@@ -97,15 +108,18 @@ const Live2DViewer = ({ catState, isDragging, modelUrl }) => {
   useEffect(() => {
     if (!modelRef.current) return;
     const model = modelRef.current;
+    const isKatou = modelUrl.includes('katou');
 
     if (isDragging) {
-      model.motion('Idle', 0, PIXI.Live2DPriority.FORCE);
+      // For dragging, we just let it be in its idle/default state or a specific panic motion
+      if (isKatou) model.motion('mtn/I_SURPRISE.mtn');
+      else model.motion('Idle', 0, PIXI.Live2DPriority.FORCE);
     } else if (catState === 'thinking') {
-      // Different index for thinking
-      model.motion('Idle', 1, PIXI.Live2DPriority.FORCE); 
+      if (isKatou) model.motion('mtn/IDLING_02.mtn'); 
+      else model.motion('Idle', 1, PIXI.Live2DPriority.FORCE); 
     } else if (catState === 'happy') {
-      if (modelUrl.includes('katou')) {
-        model.motion('mtn/03_happy.mtn');
+      if (isKatou) {
+        model.motion('mtn/I_FUN.mtn');
       } else {
         model.motion('Tap', 0, PIXI.Live2DPriority.FORCE);
       }
@@ -113,11 +127,15 @@ const Live2DViewer = ({ catState, isDragging, modelUrl }) => {
   }, [catState, isDragging, modelUrl]);
 
   return (
-    <div style={{ position: 'relative', width: '300px', height: '300px' }}>
+    <div style={{ position: 'relative', width: '300px', height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      {loading && !error && (
+        <div style={{ color: '#ff8a65', fontSize: '14px', animation: 'breathe 2s infinite' }}>
+          (=^･ω･^=) 正在召唤中...
+        </div>
+      )}
+      
       {error && (
         <div style={{ 
-          position: 'absolute', 
-          inset: 0, 
           display: 'flex', 
           flexDirection: 'column',
           alignItems: 'center', 
@@ -125,16 +143,29 @@ const Live2DViewer = ({ catState, isDragging, modelUrl }) => {
           color: '#ff8a65',
           fontSize: '12px',
           textAlign: 'center',
-          padding: '20px'
+          padding: '20px',
+          background: 'rgba(0,0,0,0.4)',
+          borderRadius: '15px'
         }}>
-          <div>(=^･ω･^=)</div>
-          <div style={{ marginTop: '10px' }}>模型加载失败: {error}</div>
-          <div style={{ fontSize: '10px', opacity: 0.7 }}>请检查网络或刷新</div>
+          <div style={{ fontSize: '24px', marginBottom: '10px' }}>😿</div>
+          <div style={{ fontWeight: 'bold' }}>加载失败喵!</div>
+          <div style={{ marginTop: '5px', opacity: 0.8 }}>{error}</div>
+          <div style={{ fontSize: '10px', marginTop: '10px', opacity: 0.6 }}>
+            请检查 F12 控制台日志
+          </div>
         </div>
       )}
+
       <canvas 
         ref={canvasRef} 
-        style={{ width: '300px', height: '300px', cursor: 'pointer', visibility: error ? 'hidden' : 'visible' }} 
+        style={{ 
+          position: 'absolute',
+          width: '300px', 
+          height: '300px', 
+          cursor: 'pointer', 
+          visibility: (error || loading) ? 'hidden' : 'visible',
+          zIndex: 1
+        }} 
       />
     </div>
   );
