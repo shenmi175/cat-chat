@@ -9,6 +9,7 @@ function App() {
   const [messages, setMessages] = useState([]);
   const [isThinking, setIsThinking] = useState(false);
   const [catState, setCatState] = useState('idle'); // idle, happy, thinking
+  const [modelUrl, setModelUrl] = useState('/live2d/tororo/tororo.model3.json');
   const lastStateHash = useRef('');
   const lastTriggerReason = useRef(''); // Track the REASON for the last proactive talk
   const prevResponseRef = useRef([]); // Anti-repetition buffer
@@ -74,6 +75,20 @@ function App() {
     }, 10000);
 
     return () => clearInterval(intervalId);
+  }, []);
+
+  // --- Initial Config & Listeners ---
+  useEffect(() => {
+    window.electronAPI?.getConfig().then(cfg => {
+      if (cfg?.modelUrl) setModelUrl(cfg.modelUrl);
+    });
+
+    const cleanup = window.electronAPI?.onConfigUpdated((newCfg) => {
+      if (newCfg?.modelUrl) setModelUrl(newCfg.modelUrl);
+    });
+    return () => {
+      if (typeof cleanup === 'function') cleanup();
+    };
   }, []);
 
   const extractAndSaveMemories = async (reply) => {
@@ -179,7 +194,11 @@ function App() {
         className="cat-area" 
         onMouseDown={handleMouseDown}
       >
-        <Live2DViewer catState={catState} isDragging={isDragging} />
+        <Live2DViewer 
+          catState={catState} 
+          isDragging={isDragging} 
+          modelUrl={modelUrl}
+        />
       </div>
 
       <div className="chat-area no-drag">

@@ -9,6 +9,11 @@ const MODELS = [
   { value: 'deepseek-reasoner', label: 'DeepSeek Reasoner (慢但强)' },
 ];
 
+const MODELS_L2D = [
+  { name: '默认小猫 (Tororo)', url: '/live2d/tororo/tororo.model3.json' },
+  { name: '加藤惠 (Katou Megumi)', url: '/model/katou_01/katou_01.model.json' },
+];
+
 function SettingsPage() {
   const [cfg, setCfg] = useState({});
   const [loading, setLoading] = useState(true);
@@ -149,6 +154,27 @@ function SettingsPage() {
                   <option key={m.value} value={m.value}>{m.label}</option>
                 ))}
               </select>
+            </section>
+
+            <section className="settings-section glass-card">
+              <label className="settings-label">应用看板娘/宠物选择</label>
+              <select
+                className="settings-select"
+                value={cfg.modelUrl || ''}
+                onChange={(e) => {
+                  const selected = MODELS_L2D.find(m => m.url === e.target.value);
+                  if (selected) {
+                    setCfg({ ...cfg, modelUrl: selected.url, modelName: selected.name });
+                  }
+                }}
+              >
+                {MODELS_L2D.map(m => (
+                  <option key={m.url} value={m.url}>{m.name}</option>
+                ))}
+              </select>
+              <p style={{ fontSize: '12px', opacity: 0.6, marginTop: '8px' }}>
+                切换后点击“保存所有”并重启应用或等待猫猫重载。
+              </p>
             </section>
 
             <section className="settings-section glass-card">
