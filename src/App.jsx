@@ -10,7 +10,7 @@ function App() {
   const [isThinking, setIsThinking] = useState(false);
   const [catState, setCatState] = useState('idle'); // idle, happy, thinking
   const [modelUrl, setModelUrl] = useState('/CubismSdkForWeb-5-r.4/Samples/Resources/Wanko/Wanko.model3.json');
-  console.log('App: Rendering state:', { catState, modelUrl });
+
   const lastStateHash = useRef('');
   const lastTriggerReason = useRef(''); // Track the REASON for the last proactive talk
   const prevResponseRef = useRef([]); // Anti-repetition buffer
@@ -191,10 +191,6 @@ function App() {
 
   return (
     <div className="app-container">
-      {/* GLOBAL DEBUG LABEL */}
-      <div style={{ position: 'fixed', top: 0, right: 0, background: 'rgba(0,0,0,0.5)', color: 'white', fontSize: '10px', padding: '4px', zIndex: 1000, pointerEvents: 'none' }}>
-        Status: {catState} | Drag: {String(isDragging)}
-      </div>
       <div 
         className="cat-area" 
         onMouseDown={handleMouseDown}
