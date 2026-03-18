@@ -11,8 +11,6 @@ export default defineConfig({
         vite: {
           build: {
             rollupOptions: {
-              // Keep native / optional-dep-heavy packages out of the bundle.
-              // They are available at runtime in the Electron Node context.
               external: ['active-win', 'mock-aws-s3', 'aws-sdk', 'nock'],
             },
           },
@@ -24,4 +22,28 @@ export default defineConfig({
       renderer: {}
     }),
   ],
+  resolve: {
+    alias: {
+      '@pixi/core': 'pixi.js',
+      '@pixi/display': 'pixi.js',
+      '@pixi/utils': 'pixi.js',
+      '@pixi/math': 'pixi.js',
+      '@pixi/runner': 'pixi.js',
+      '@pixi/ticker': 'pixi.js',
+      '@pixi/settings': 'pixi.js',
+      '@pixi/constants': 'pixi.js',
+      '@pixi/extensions': 'pixi.js',
+      '@pixi/graphics': 'pixi.js',
+    }
+  },
+  optimizeDeps: {
+    include: ['pixi.js', 'pixi-live2d-display'],
+    exclude: ['public/**']
+  },
+  server: {
+    fs: {
+      // Allow serving files from the project root and public dir
+      allow: ['..']
+    }
+  }
 })
