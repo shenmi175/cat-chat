@@ -37,12 +37,10 @@ export default defineConfig({
     }
   },
   optimizeDeps: {
-    include: ['pixi.js', 'pixi-live2d-display'],
-    exclude: ['public/**']
+    include: ['pixi.js', 'pixi-live2d-display']
   },
   server: {
     fs: {
-      // Allow serving files from the project root and public dir
       allow: ['..']
     }
   }
