@@ -2,94 +2,93 @@ import React, { useEffect, useRef } from 'react';
 import * as PIXI from 'pixi.js';
 import { Live2DModel } from 'pixi-live2d-display';
 
-// pixi-live2d-display requires PIXI on window
 window.PIXI = PIXI;
 
-// ─── Force most compatible WebGL mode ─────────────────────────────────────────
-// PIXI.ENV: WEBGL_LEGACY=0, WEBGL=1, WEBGL2=2
-// Use 0 (legacy) to avoid checkMaxIfStatementsInShader crash in Electron
-if (PIXI.settings) {
-  PIXI.settings.PREFER_ENV = 0; // WEBGL_LEGACY
+// Force legacy WebGL to avoid checkMaxIfStatementsInShader crash in Electron
+if (PIXI.settings) PIXI.settings.PREFER_ENV = 0;
+
+const CANVAS_W = 300;
+const CANVAS_H = 300;
+
+// Auto-fit: scale model so it fills the canvas nicely, regardless of model
+function autoFit(model) {
+  // pixi-live2d-display gives us the natural pixel size after load
+  const natW = model.internalModel?.originalWidth  || model.width  || 1000;
+  const natH = model.internalModel?.originalHeight || model.height || 1000;
+
+  // Scale to fill ~90% of the canvas, keeping aspect ratio
+  const scale = Math.min(CANVAS_W / natW, CANVAS_H / natH) * 0.9;
+  model.scale.set(scale);
+
+  // Center horizontally; show head/upper-body by anchoring at top-center
+  model.anchor.set(0.5, 0);
+  model.x = CANVAS_W / 2;
+  model.y = 0;
+
+  console.log(`Live2D: autoFit  nat=${natW}×${natH}  scale=${scale.toFixed(4)}`);
 }
 
-// ─── Model scale table ────────────────────────────────────────────────────────
-function getScale(url) {
-  if (url.includes('Wanko'))  return 0.30;
-  if (url.includes('Rice'))   return 0.35;
-  if (url.includes('katou'))  return 0.11;
-  // Haru, Hiyori, Mao, Mark, Natori — full-body humans
-  return 0.09;
-}
-
-// ─── Component ────────────────────────────────────────────────────────────────
 const Live2DViewer = ({ catState, isDragging, modelUrl }) => {
-  const containerRef = useRef(null);    // The outer div
-  const appRef      = useRef(null);
-  const modelRef    = useRef(null);
+  const containerRef = useRef(null);
+  const appRef       = useRef(null);
+  const modelRef     = useRef(null);
 
-  const [status, setStatus] = React.useState('initializing'); // 'initializing' | 'loading' | 'ready' | 'error'
-  const [statusMsg, setStatusMsg] = React.useState('检查驱动...');
+  const [status,    setStatus]    = React.useState('initializing');
+  const [statusMsg, setStatusMsg] = React.useState('');
 
-  // Single effect: init PIXI + load model.  Runs whenever modelUrl changes.
   useEffect(() => {
     if (!containerRef.current) return;
-
     let cancelled = false;
 
     const run = async () => {
-      // ── 1. Check Cubism Core ──────────────────────────────────────────────
+      // 1. Cubism Core check
       if (!window.Live2DCubismCore) {
         setStatus('error');
-        setStatusMsg('缺少核心驱动!\\n请确认 index.html 中的 Cubism Core 脚本已正确加载。\\n检查开发者控制台 (F12) 的 Network 标签页。');
+        setStatusMsg('缺少核心驱动!\n请确认 /public/CubismSdkForWeb-5-r.4/Core/live2dcubismcore.min.js 存在');
         return;
       }
-      setStatus('loading');
-      setStatusMsg(`加载模型中...\\n${modelUrl.split('/').pop()}`);
 
-      // ── 2. Destroy previous PIXI app ─────────────────────────────────────
+      setStatus('loading');
+      setStatusMsg('召唤中...');
+
+      // 2. Tear down previous instance
       if (appRef.current) {
         try { appRef.current.destroy(true, { children: true }); } catch (_) {}
         appRef.current = null;
         modelRef.current = null;
       }
 
-      // Create canvas. We render at 300×300 but the cat-area CSS clips to 180px tall,
-      // so we position models to show their upper body / face in that 180px zone.
+      // 3. Create canvas programmatically (prevents CSS vs PIXI size conflict)
       const canvas = document.createElement('canvas');
-      canvas.width  = 300;
-      canvas.height = 300;
-      canvas.style.cssText = 'position:absolute;top:0;left:0;cursor:pointer;width:300px;height:300px;';
+      canvas.width  = CANVAS_W;
+      canvas.height = CANVAS_H;
+      // pointer-events: none lets clicks/touches fall through to chat/input below
+      canvas.style.cssText =
+        `position:absolute;top:0;left:0;width:${CANVAS_W}px;height:${CANVAS_H}px;pointer-events:none;`;
       containerRef.current.appendChild(canvas);
 
-      // ── 4. Init PIXI ──────────────────────────────────────────────────────
+      // 4. Init PixiJS
       let app;
       try {
         app = new PIXI.Application({
           view: canvas,
-          width: 300,
-          height: 300,
+          width: CANVAS_W,
+          height: CANVAS_H,
           backgroundAlpha: 0,
           transparent: true,
-          antialias: false,          // false = more compatible
+          antialias: false,
           autoStart: true,
-          resolution: 1,             // fixed 1x avoids density math issues
-          forceCanvas: false,
+          resolution: 1,
         });
       } catch (e) {
-        console.error('Live2D: PIXI init failed', e);
         canvas.remove();
-        if (!cancelled) {
-          setStatus('error');
-          setStatusMsg(`渲染器初始化失败: ${e.message}`);
-        }
+        if (!cancelled) { setStatus('error'); setStatusMsg(`渲染器初始化失败:\n${e.message}`); }
         return;
       }
-
       if (cancelled) { app.destroy(true); canvas.remove(); return; }
       appRef.current = app;
-      console.log('Live2D: PIXI ready, renderer=', app.renderer.type === 1 ? 'WebGL' : 'Canvas');
 
-      // ── 5. Load model ─────────────────────────────────────────────────────
+      // 5. Load model
       try {
         const model = await Live2DModel.from(modelUrl, { autoInteract: false });
         if (cancelled) { model.destroy(); return; }
@@ -97,28 +96,19 @@ const Live2DViewer = ({ catState, isDragging, modelUrl }) => {
         modelRef.current = model;
         app.stage.addChild(model);
 
-        const sc = getScale(modelUrl);
-        model.scale.set(sc);
-        // anchor (0.5, 0) = horizontal center, vertical top of model
-        // This way the head/upper body fills the visible 180px cat-area
-        model.anchor.set(0.5, 0);
-        model.x = 150;
-        model.y = 0;
+        // Auto-fit to canvas — no hardcoded per-model values
+        autoFit(model);
         model.interactive = true;
 
         model.on('pointerdown', () => {
           try { model.motion(modelUrl.includes('katou') ? '' : 'TapBody'); } catch (_) {}
         });
 
-        console.log(`Live2D: Model ready  scale=${sc}  url=${modelUrl}`);
+        console.log(`Live2D: model ready  ${modelUrl.split('/').pop()}`);
         if (!cancelled) { setStatus('ready'); setStatusMsg(''); }
-
       } catch (e) {
-        console.error('Live2D: model load error', e);
-        if (!cancelled) {
-          setStatus('error');
-          setStatusMsg(`模型加载失败: ${e.message ?? '路径可能不正确'}`);
-        }
+        console.error('Live2D: load error', e);
+        if (!cancelled) { setStatus('error'); setStatusMsg(`加载失败:\n${e.message ?? '路径错误'}`); }
       }
     };
 
@@ -126,7 +116,6 @@ const Live2DViewer = ({ catState, isDragging, modelUrl }) => {
 
     return () => {
       cancelled = true;
-      // Remove dynamically-created canvas
       const canvas = containerRef.current?.querySelector('canvas');
       if (canvas) canvas.remove();
       if (appRef.current) {
@@ -142,8 +131,8 @@ const Live2DViewer = ({ catState, isDragging, modelUrl }) => {
     const model = modelRef.current;
     if (!model || status !== 'ready') return;
     try {
-      if (isDragging)           model.motion('Idle');
-      else if (catState === 'happy')    model.motion(modelUrl.includes('katou') ? '' : 'TapBody');
+      if (isDragging)                model.motion('Idle');
+      else if (catState === 'happy') model.motion(modelUrl.includes('katou') ? '' : 'TapBody');
       else if (catState === 'thinking') model.motion('Idle');
     } catch (_) {}
   }, [catState, isDragging, modelUrl, status]);
@@ -151,9 +140,8 @@ const Live2DViewer = ({ catState, isDragging, modelUrl }) => {
   return (
     <div
       ref={containerRef}
-      style={{ position: 'relative', width: '300px', height: '300px', overflow: 'hidden' }}
+      style={{ position: 'relative', width: `${CANVAS_W}px`, height: `${CANVAS_H}px` }}
     >
-      {/* Status overlay — visible when not ready */}
       {status !== 'ready' && (
         <div style={{
           position: 'absolute', inset: 0,
@@ -162,11 +150,11 @@ const Live2DViewer = ({ catState, isDragging, modelUrl }) => {
           color: '#ff8a65', fontSize: '12px', textAlign: 'center',
           padding: '20px', pointerEvents: 'none', zIndex: 10,
           background: status === 'error' ? 'rgba(0,0,0,0.55)' : 'transparent',
-          borderRadius: '12px',
-          whiteSpace: 'pre-line',
+          borderRadius: '12px', whiteSpace: 'pre-line',
         }}>
           {status === 'error'
-            ? <><div style={{ fontSize: '24px', marginBottom: '8px' }}>😿</div><div style={{ fontWeight: 'bold', marginBottom: '6px' }}>加载失败</div></>
+            ? <><div style={{ fontSize: '22px', marginBottom: '8px' }}>😿</div>
+                <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>加载失败</div></>
             : <div style={{ marginBottom: '6px' }}>(=^･ω･^=)</div>
           }
           <div style={{ opacity: 0.9 }}>{statusMsg}</div>

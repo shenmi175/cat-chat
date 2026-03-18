@@ -4,7 +4,7 @@ html, body, #root {
   padding: 0;
   width: 100vw;
   height: 100vh;
-  background-color: transparent !important; /* Critical for transparent window */
+  background-color: transparent !important;
   overflow: hidden;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
@@ -16,40 +16,42 @@ html, body, #root {
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
-  /* Allow clicking through the empty space of the window */
-  pointer-events: none; 
+  /* Allow clicking through empty/transparent space */
+  pointer-events: none;
+  position: relative;
 }
 
-/* Input and buttons explicitly re-enable pointer events */
+/* Input and chat re-enable pointer events */
 .no-drag {
   pointer-events: auto;
 }
 
-/* --- The Cat --- */
+/* --- The Character / Cat --- */
 .cat-area {
   cursor: grab;
-  position: relative;
-  pointer-events: auto;
+  position: absolute;   /* fills the full window */
+  inset: 0;
+  pointer-events: none; /* pass-through so input is reachable */
   user-select: none;
-  width: 300px;
-  height: 180px;   /* shorter window — model clips to upper body */
-  overflow: hidden; /* clip the bottom of the model */
-  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
 }
 
+/* Restore grabbing cursor while dragging via JS */
 .cat-area:active {
   cursor: grabbing;
 }
 
-
-/* --- Chat & UI --- */
+/* --- Chat overlay --- */
 .chat-area {
+  position: absolute;
+  bottom: 80px;          /* sit just above the input bar */
   width: 90%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 6px 0;
-  flex-shrink: 0;
+  pointer-events: none;
 }
 
 .chat-bubble {
@@ -90,6 +92,7 @@ html, body, #root {
   font-style: italic;
 }
 
+/* --- Input bar pinned at bottom --- */
 .input-area {
   margin-bottom: 12px;
   flex-shrink: 0;
