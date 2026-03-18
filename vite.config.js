@@ -22,26 +22,13 @@ export default defineConfig({
       renderer: {}
     }),
   ],
-  resolve: {
-    alias: {
-      '@pixi/core': 'pixi.js',
-      '@pixi/display': 'pixi.js',
-      '@pixi/utils': 'pixi.js',
-      '@pixi/math': 'pixi.js',
-      '@pixi/runner': 'pixi.js',
-      '@pixi/ticker': 'pixi.js',
-      '@pixi/settings': 'pixi.js',
-      '@pixi/constants': 'pixi.js',
-      '@pixi/extensions': 'pixi.js',
-      '@pixi/graphics': 'pixi.js',
+  // Exclude the Cubism SDK TypeScript demo (it's a standalone app, not part of this project)
+  server: {
+    watch: {
+      ignored: ['**/CubismSdkForWeb-5-r.4/Samples/TypeScript/**', '**/CubismSdkForWeb-5-r.4/Framework/**']
     }
   },
   optimizeDeps: {
-    include: ['pixi.js', 'pixi-live2d-display']
-  },
-  server: {
-    fs: {
-      allow: ['..']
-    }
+    exclude: ['CubismSdkForWeb-5-r.4']
   }
 })
