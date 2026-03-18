@@ -1,9 +1,13 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useRef } from 'react';
 import * as PIXI from 'pixi.js';
 import { Live2DModel } from 'pixi-live2d-display';
 
 // pixi-live2d-display needs PIXI on window
 window.PIXI = PIXI;
+
+// Force legacy WebGL to avoid checkMaxIfStatementsInShader(0) crash in Electron
+// This is a known issue when the GPU context isn't fully ready at init time
+PIXI.settings.PREFER_ENV = PIXI.ENV.WEBGL_LEGACY;
 
 const Live2DViewer = ({ catState, isDragging, modelUrl }) => {
   const canvasRef = useRef(null);
@@ -12,37 +16,48 @@ const Live2DViewer = ({ catState, isDragging, modelUrl }) => {
   const [error, setError] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
 
-  // Initialize PixiJS app once
-  useEffect(() => {
+  // useLayoutEffect ensures the canvas is mounted in DOM before PIXI touches it
+  useLayoutEffect(() => {
     if (!window.Live2DCubismCore) {
-      console.error('Live2D: Cubism Core missing! Place live2dcubismcore.min.js in /public/');
-      setError('驱动缺失: 请下载 live2dcubismcore.min.js 放入 public 文件夹');
+      console.error('Live2D: live2dcubismcore.min.js missing from /public/!');
+      setError('驱动缺失: 请将 live2dcubismcore.min.js 放入 public 文件夹');
       setLoading(false);
       return;
     }
 
-    console.log('Live2D: Cubism Core found, OK');
+    let app;
+    try {
+      app = new PIXI.Application({
+        view: canvasRef.current,
+        width: 300,
+        height: 300,
+        backgroundAlpha: 0,
+        antialias: true,
+        autoStart: true,
+        resolution: window.devicePixelRatio || 1,
+        autoDensity: true,
+        // Use WebGL1 which is more compatible in Electron
+        powerPreference: 'high-performance',
+      });
+    } catch (e) {
+      console.error('Live2D: PixiJS Application init failed:', e);
+      setError(`渲染器初始化失败: ${e.message}`);
+      setLoading(false);
+      return;
+    }
 
-    const app = new PIXI.Application({
-      view: canvasRef.current,
-      width: 300,
-      height: 300,
-      backgroundAlpha: 0,
-      antialias: true,
-      autoStart: true,
-      resolution: window.devicePixelRatio || 1,
-      autoDensity: true,
-    });
     appRef.current = app;
-
-    console.log('Live2D: PixiJS Application created:', app.renderer.type);
+    console.log('Live2D: PixiJS ready, renderer:', app.renderer.type === 1 ? 'WebGL' : 'Canvas');
 
     return () => {
-      app.destroy(true, { children: true });
+      if (appRef.current) {
+        appRef.current.destroy(true, { children: true });
+        appRef.current = null;
+      }
     };
   }, []);
 
-  // Load/switch model whenever modelUrl changes
+  // Load/switch model when modelUrl changes
   useEffect(() => {
     if (!appRef.current || !modelUrl) return;
 
@@ -64,11 +79,11 @@ const Live2DViewer = ({ catState, isDragging, modelUrl }) => {
         const model = await Live2DModel.from(modelUrl, { autoInteract: false });
         if (cancelled) return;
 
-        console.log('Live2D: Model loaded successfully', model);
+        console.log('Live2D: Model loaded OK', model.internalModel?.settings?.name ?? modelUrl);
         modelRef.current = model;
         appRef.current.stage.addChild(model);
 
-        // Scale / position per model
+        // Scale + center per model type
         const W = 300, H = 300;
         if (modelUrl.includes('Wanko')) {
           model.scale.set(0.3);
@@ -77,8 +92,7 @@ const Live2DViewer = ({ catState, isDragging, modelUrl }) => {
         } else if (modelUrl.includes('katou')) {
           model.scale.set(0.11);
         } else {
-          // Haru, Hiyori, Mao, Mark, Natori — full body humans
-          model.scale.set(0.09);
+          model.scale.set(0.09); // Full-body humans: Haru, Hiyori, Mao, etc.
         }
 
         model.anchor.set(0.5, 0.5);
@@ -86,17 +100,18 @@ const Live2DViewer = ({ catState, isDragging, modelUrl }) => {
         model.y = H / 2;
         model.interactive = true;
 
-        // Pointer interaction
+        // Click/tap reaction
         model.on('pointerdown', () => {
-          const motionGroup = modelUrl.includes('katou') ? '' : 'TapBody';
-          model.motion(motionGroup);
+          try {
+            model.motion(modelUrl.includes('katou') ? '' : 'TapBody');
+          } catch (_) {}
         });
 
         setLoading(false);
       } catch (e) {
         if (cancelled) return;
-        console.error('Live2D: Load error:', e);
-        setError(`加载失败: ${e.message || '未知错误'}`);
+        console.error('Live2D: Model load error:', e);
+        setError(`加载失败: ${e.message ?? '未知错误'}`);
         setLoading(false);
       }
     })();
@@ -104,24 +119,19 @@ const Live2DViewer = ({ catState, isDragging, modelUrl }) => {
     return () => { cancelled = true; };
   }, [modelUrl]);
 
-  // Animate based on app state
+  // Animate on state change
   useEffect(() => {
     const model = modelRef.current;
     if (!model) return;
-
     try {
       if (isDragging) {
-        if (modelUrl.includes('katou')) model.motion('', 10); // surprise
-        else model.motion('Idle');
+        model.motion(modelUrl.includes('katou') ? '' : 'Idle');
       } else if (catState === 'happy') {
-        if (modelUrl.includes('katou')) model.motion('', 3); // fun
-        else model.motion('TapBody');
+        model.motion(modelUrl.includes('katou') ? '' : 'TapBody');
       } else if (catState === 'thinking') {
         model.motion('Idle');
       }
-    } catch (_) {
-      // Motion errors are non-fatal
-    }
+    } catch (_) {}
   }, [catState, isDragging, modelUrl]);
 
   return (
