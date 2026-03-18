@@ -10,8 +10,14 @@ const MODELS = [
 ];
 
 const MODELS_L2D = [
-  { name: '默认小猫 (Tororo)', url: '/live2d/tororo/tororo.model3.json' },
-  { name: '加藤惠 (Katou Megumi)', url: '/model/katou_01/katou_01.model.json' },
+  { name: 'Wanko (小狗 - 推荐测试)', url: '/CubismSdkForWeb-5-r.4/Samples/Resources/Wanko/Wanko.model3.json' },
+  { name: 'Rice (小精灵)', url: '/CubismSdkForWeb-5-r.4/Samples/Resources/Rice/Rice.model3.json' },
+  { name: 'Haru (少女)', url: '/CubismSdkForWeb-5-r.4/Samples/Resources/Haru/Haru.model3.json' },
+  { name: 'Hiyori (日和)', url: '/CubismSdkForWeb-5-r.4/Samples/Resources/Hiyori/Hiyori.model3.json' },
+  { name: 'Mao (茂)', url: '/CubismSdkForWeb-5-r.4/Samples/Resources/Mao/Mao.model3.json' },
+  { name: 'Natori (名取)', url: '/CubismSdkForWeb-5-r.4/Samples/Resources/Natori/Natori.model3.json' },
+  { name: 'Mark (男)', url: '/CubismSdkForWeb-5-r.4/Samples/Resources/Mark/Mark.model3.json' },
+  { name: '加藤惠 (Katou Megumi - v2)', url: '/model/katou_01/katou_01.model.json' },
 ];
 
 function SettingsPage() {

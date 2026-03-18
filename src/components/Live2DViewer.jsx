@@ -68,13 +68,18 @@ const Live2DViewer = ({ catState, isDragging, modelUrl }) => {
 
         // --- Model Specific Adjustments ---
         if (modelUrl.includes('katou')) {
-          // Katou v2 model usually needs different scaling/positioning
           model.scale.set(0.12); 
-          model.anchor.set(0.5, 0.2); // Adjust anchor so she sits better in the 300x300 box
-        } else {
-          // Default Tororo cat
-          model.scale.set(0.15);
+          model.anchor.set(0.5, 0.2);
+        } else if (modelUrl.includes('Wanko')) {
+          model.scale.set(0.35); // Small dog needs larger scale
           model.anchor.set(0.5, 0.5);
+        } else if (modelUrl.includes('Rice')) {
+          model.scale.set(0.4); 
+          model.anchor.set(0.5, 0.5);
+        } else {
+          // Standard humans (Haru, Hiyori, etc.)
+          model.scale.set(0.1);
+          model.anchor.set(0.5, 0.1); 
         }
         
         model.x = 150; 
@@ -84,10 +89,14 @@ const Live2DViewer = ({ catState, isDragging, modelUrl }) => {
         model.on('hit', (hitAreas) => {
           console.log('Live2D: Hit:', hitAreas);
           const isKatou = modelUrl.includes('katou');
-          // Support both v3 ('Head') and v2 ('head') naming
-          if (hitAreas.some(h => h.toLowerCase() === 'head')) {
+          const isSDK = modelUrl.includes('CubismSdk');
+          
+          if (hitAreas.some(h => h.toLowerCase().includes('head'))) {
             if (isKatou) {
-              model.motion('mtn/I_FUN.mtn'); // Happy reaction for Katou
+              model.motion('mtn/I_FUN.mtn');
+            } else if (isSDK) {
+              // SDK models often have indexed motions or name-based ones
+              model.motion('TapBody'); // Common name in SDK samples
             } else {
               model.motion('Tap');
             }
@@ -98,7 +107,7 @@ const Live2DViewer = ({ catState, isDragging, modelUrl }) => {
 
       } catch (e) {
         console.error('Live2D: Load error:', e);
-        setError(e.message || 'Load failed');
+        setError(`加载失败: ${e.message || '资源路径错误'}`);
         setLoading(false);
       }
     })();
@@ -109,17 +118,20 @@ const Live2DViewer = ({ catState, isDragging, modelUrl }) => {
     if (!modelRef.current) return;
     const model = modelRef.current;
     const isKatou = modelUrl.includes('katou');
+    const isSDK = modelUrl.includes('CubismSdk');
 
     if (isDragging) {
-      // For dragging, we just let it be in its idle/default state or a specific panic motion
       if (isKatou) model.motion('mtn/I_SURPRISE.mtn');
+      else if (isSDK) model.motion('Idle', 1);
       else model.motion('Idle', 0, PIXI.Live2DPriority.FORCE);
     } else if (catState === 'thinking') {
       if (isKatou) model.motion('mtn/IDLING_02.mtn'); 
-      else model.motion('Idle', 1, PIXI.Live2DPriority.FORCE); 
+      else model.motion('Idle', 1); 
     } else if (catState === 'happy') {
       if (isKatou) {
         model.motion('mtn/I_FUN.mtn');
+      } else if (isSDK) {
+        model.motion('TapBody');
       } else {
         model.motion('Tap', 0, PIXI.Live2DPriority.FORCE);
       }

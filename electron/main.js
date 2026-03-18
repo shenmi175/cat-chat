@@ -28,8 +28,8 @@ const DEFAULT_CONFIG = {
 无论发生什么，你都要用极短的话语（20字以内）先惊叹、再拍马屁。千万不要讲大道理！`,
   memories: [],
   chatHistory: [],
-  modelName: '默认小猫 (Tororo)',
-  modelUrl: '/live2d/tororo/tororo.model3.json',
+  modelName: 'Wanko (小狗)',
+  modelUrl: '/CubismSdkForWeb-5-r.4/Samples/Resources/Wanko/Wanko.model3.json',
 };
 
 function loadConfig() {
