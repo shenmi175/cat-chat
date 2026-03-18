@@ -53,11 +53,12 @@ const Live2DViewer = ({ catState, isDragging, modelUrl }) => {
         modelRef.current = null;
       }
 
-      // ── 3. Create canvas programmatically (avoid CSS size conflicts) ──────
+      // Create canvas. We render at 300×300 but the cat-area CSS clips to 180px tall,
+      // so we position models to show their upper body / face in that 180px zone.
       const canvas = document.createElement('canvas');
       canvas.width  = 300;
       canvas.height = 300;
-      canvas.style.cssText = 'position:absolute;top:0;left:0;cursor:pointer;';
+      canvas.style.cssText = 'position:absolute;top:0;left:0;cursor:pointer;width:300px;height:300px;';
       containerRef.current.appendChild(canvas);
 
       // ── 4. Init PIXI ──────────────────────────────────────────────────────
@@ -98,9 +99,11 @@ const Live2DViewer = ({ catState, isDragging, modelUrl }) => {
 
         const sc = getScale(modelUrl);
         model.scale.set(sc);
-        model.anchor.set(0.5, 0.5);
+        // anchor (0.5, 0) = horizontal center, vertical top of model
+        // This way the head/upper body fills the visible 180px cat-area
+        model.anchor.set(0.5, 0);
         model.x = 150;
-        model.y = 150;
+        model.y = 0;
         model.interactive = true;
 
         model.on('pointerdown', () => {

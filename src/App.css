@@ -28,16 +28,13 @@ html, body, #root {
 /* --- The Cat --- */
 .cat-area {
   cursor: grab;
-  margin-bottom: -40px; /* Pull chat closer to model */
   position: relative;
   pointer-events: auto;
   user-select: none;
   width: 300px;
-  height: 300px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
+  height: 180px;   /* shorter window — model clips to upper body */
+  overflow: hidden; /* clip the bottom of the model */
+  flex-shrink: 0;
 }
 
 .cat-area:active {
@@ -47,12 +44,12 @@ html, body, #root {
 
 /* --- Chat & UI --- */
 .chat-area {
-  position: absolute;
-  bottom: 140px;
   width: 90%;
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding: 6px 0;
+  flex-shrink: 0;
 }
 
 .chat-bubble {
@@ -94,7 +91,8 @@ html, body, #root {
 }
 
 .input-area {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+  flex-shrink: 0;
 }
 
 form {
