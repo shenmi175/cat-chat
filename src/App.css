@@ -113,21 +113,24 @@ html, body, #root {
   backdrop-filter: blur(4px);
 }
 
-/* --- Input bar at the very top --- */
+/* --- Input bar at the very bottom --- */
 .input-area {
   position: absolute;
-  top: 0px;
+  bottom: 0px;
   left: 0;
   right: 0;
-  height: calc(70px * var(--app-scale));
+  height: calc(85px * var(--app-scale));
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(to bottom, rgba(255,255,255,0.4), transparent);
-  transition: all 0.3s ease;
-  transform: translateY(-100%);
+  background: linear-gradient(to top, rgba(255,255,255,0.5), transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transform: translateY(100%);
   opacity: 0;
   z-index: 60;
+  border-top: 1px solid rgba(255,255,255,0.3);
 }
 
 .input-area.visible {
@@ -199,11 +202,11 @@ button:active {
 /* Floating Speak Button (stays at bottom right relative to window) */
 .speak-trigger {
   position: absolute;
-  bottom: calc(20px * var(--app-scale));
-  right: calc(20px * var(--app-scale));
+  bottom: calc(25px * var(--app-scale)); /* Slightly higher to stay above bottom edge */
+  right: calc(22px * var(--app-scale));
   width: calc(44px * var(--app-scale));
   height: calc(44px * var(--app-scale));
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.5);
   border-radius: 50%;
@@ -211,10 +214,10 @@ button:active {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 calc(6px * var(--app-scale)) calc(20px * var(--app-scale)) rgba(0,0,0,0.12);
+  box-shadow: 0 calc(6px * var(--app-scale)) calc(20px * var(--app-scale)) rgba(0,0,0,0.15);
   font-size: calc(22px * var(--app-scale));
   transition: all 0.2s;
-  z-index: 100;
+  z-index: 70; /* Above bottom input bar when it pops up? No, beneath is fine. */
   pointer-events: auto;
 }
 

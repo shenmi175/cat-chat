@@ -7,6 +7,7 @@ if (PIXI.settings) PIXI.settings.PREFER_ENV = 0;
 
 const TARGET_MODEL_H = 400; 
 const UI_PADDING_H = 200; 
+const BOTTOM_UI_H = 95; // Space for input area (85px + 10px gap)
 
 const Live2DViewer = ({ petState, isDragging, modelUrl, globalScale = 1.0, onHeadPosChange }) => {
   const canvasRef = useRef(null);
@@ -54,7 +55,7 @@ const Live2DViewer = ({ petState, isDragging, modelUrl, globalScale = 1.0, onHea
         const scale = scaledModelH / natH;
         
         const winW = Math.max(Math.round(natW * scale), 300 * globalScale);
-        const winH = Math.round(natH * scale) + scaledPaddingH;
+        const winH = Math.round(natH * scale) + scaledPaddingH + (BOTTOM_UI_H * globalScale);
 
         // 4. Apply Sizes
         setSize({ w: winW, h: winH });
@@ -65,7 +66,7 @@ const Live2DViewer = ({ petState, isDragging, modelUrl, globalScale = 1.0, onHea
         model.scale.set(scale);
         model.anchor.set(0.5, 1);
         model.x = winW / 2;
-        model.y = winH;
+        model.y = winH - (BOTTOM_UI_H * globalScale);
 
         app.stage.addChild(model);
         modelRef.current = model;
