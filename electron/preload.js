@@ -15,6 +15,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openHistory:    () => ipcRenderer.send('open-history'),
   openSettings: () => ipcRenderer.send('open-settings'),
 
+  resizeWindow: (w, h) => ipcRenderer.send('resize-window', w, h),
+
   setIgnoreMouseEvents: (ignore, options) => ipcRenderer.send('set-ignore-mouse-events', ignore, options),
 
   // Listen for config updates pushed from main process

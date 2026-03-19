@@ -175,6 +175,12 @@ ipcMain.on('set-ignore-mouse-events', (event, ignore, options) => {
   }
 });
 
+ipcMain.on('resize-window', (event, width, height) => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.setSize(Math.round(width), Math.round(height), true);
+  }
+});
+
 // ─── IPC: Config ──────────────────────────────────────────────────────────────
 ipcMain.handle('get-config', () => loadConfig());
 
