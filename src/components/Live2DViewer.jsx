@@ -7,9 +7,7 @@ window.PIXI = PIXI;
 // Force legacy WebGL to avoid checkMaxIfStatementsInShader crash in Electron
 if (PIXI.settings) PIXI.settings.PREFER_ENV = 0;
 
-// Target display height for the MODEL itself (not the whole window)
 const TARGET_MODEL_H = 400; 
-// Vertical padding for chat and input UI (at the top)
 const UI_PADDING_H = 150; 
 
 const Live2DViewer = ({ petState, isDragging, modelUrl }) => {
@@ -20,75 +18,83 @@ const Live2DViewer = ({ petState, isDragging, modelUrl }) => {
 
   const [status,    setStatus]    = useState('initializing');
   const [statusMsg, setStatusMsg] = useState('');
-  const [size,      setSize]      = useState({ w: 400, h: TARGET_MODEL_H + UI_PADDING_H });
+  const [size,      setSize]      = useState({ w: 350, h: TARGET_MODEL_H + UI_PADDING_H });
 
+  // 1. One-time Pixi Application setup
   useEffect(() => {
-    if (!containerRef.current || !canvasRef.current) return;
+    if (!canvasRef.current) return;
+    
+    const app = new PIXI.Application({
+      view: canvasRef.current,
+      width: size.w,
+      height: size.h,
+      backgroundAlpha: 0,
+      transparent: true,
+      antialias: true,
+      autoStart: true,
+      resolution: window.devicePixelRatio || 1,
+    });
+    
+    appRef.current = app;
+
+    return () => {
+      if (appRef.current) {
+        appRef.current.destroy(true, { children: true });
+        appRef.current = null;
+      }
+    };
+  }, []); // Only once
+
+  // 2. Model Loading & Auto-resizing logic
+  useEffect(() => {
+    const app = appRef.current;
+    if (!app || !modelUrl) return;
+    
     let cancelled = false;
 
-    const run = async () => {
+    const loadNewModel = async () => {
       if (!window.Live2DCubismCore) {
         setStatus('error');
-        setStatusMsg('缺少核心驱动!\n请确认 /public/CubismSdkForWeb-5-r.4/Core/live2dcubismcore.min.js 存在');
+        setStatusMsg('缺少核心驱动');
         return;
       }
 
       setStatus('loading');
-      setStatusMsg('正在连接次元...');
+      setStatusMsg('变换形态中...');
 
-      // Tear down previous model/app
+      // Clean up previous model
       if (modelRef.current) {
+        app.stage.removeChild(modelRef.current);
         modelRef.current.destroy();
         modelRef.current = null;
-      }
-      if (appRef.current) {
-        appRef.current.destroy(false); // don't destroy the canvas we are reusing
-        appRef.current = null;
       }
 
       try {
         const model = await Live2DModel.from(modelUrl, { autoInteract: false });
         if (cancelled) { model.destroy(); return; }
 
-        // Calculate dynamic dimensions
+        // Calculate dimensions
         const natW = model.internalModel?.originalWidth  || model.width  || 1000;
         const natH = model.internalModel?.originalHeight || model.height || 1000;
         
         const scale = TARGET_MODEL_H / natH;
-        const displayW = Math.round(natW * scale);
-        const displayH = Math.round(natH * scale);
+        const windowW = Math.max(Math.round(natW * scale), 300);
+        const windowH = Math.round(natH * scale) + UI_PADDING_H;
         
-        const windowW = Math.max(displayW, 300);
-        const windowH = displayH + UI_PADDING_H;
-        
+        // Update local state and canvas/app size
         setSize({ w: windowW, h: windowH });
+        app.renderer.resize(windowW, windowH);
+        
         model.scale.set(scale);
         model.anchor.set(0.5, 1);
         model.x = windowW / 2;
         model.y = windowH;
 
-        // Update canvas size
-        const canvas = canvasRef.current;
-        canvas.width  = windowW;
-        canvas.height = windowH;
-
-        // Tell Electron to resize
+        // Sync with Electron
         window.electronAPI.resizeWindow(windowW, windowH);
 
-        const app = new PIXI.Application({
-          view: canvas,
-          width: windowW,
-          height: windowH,
-          backgroundAlpha: 0,
-          transparent: true,
-          antialias: true,
-          autoStart: true,
-          resolution: window.devicePixelRatio || 1,
-        });
-        
-        appRef.current = app;
-        modelRef.current = model;
         app.stage.addChild(model);
+        modelRef.current = model;
         model.interactive = true;
 
         model.on('pointerdown', () => {
@@ -97,27 +103,20 @@ const Live2DViewer = ({ petState, isDragging, modelUrl }) => {
 
         if (!cancelled) { setStatus('ready'); setStatusMsg(''); }
       } catch (e) {
-        console.error('Live2D: load error', e);
-        if (!cancelled) { setStatus('error'); setStatusMsg(`加载失败:\n${e.message ?? '路径错误'}`); }
+        console.error('Live2D: switch error', e);
+        if (!cancelled) {
+          setStatus('error');
+          setStatusMsg(`召唤失败: ${modelUrl.split('/').pop()}`);
+        }
       }
     };
 
-    run();
+    loadNewModel();
 
-    return () => {
-      cancelled = true;
-      if (appRef.current) {
-        try { appRef.current.destroy(false); } catch (_) {}
-        appRef.current = null;
-      }
-      if (modelRef.current) {
-        try { modelRef.current.destroy(); } catch (_) {}
-        modelRef.current = null;
-      }
-    };
+    return () => { cancelled = true; };
   }, [modelUrl]);
 
-  // Animate on state change
+  // 3. Animation Logic
   useEffect(() => {
     const model = modelRef.current;
     if (!model || status !== 'ready') return;
@@ -131,7 +130,12 @@ const Live2DViewer = ({ petState, isDragging, modelUrl }) => {
   return (
     <div
       ref={containerRef}
-      style={{ position: 'relative', width: `${size.w}px`, height: `${size.h}px` }}
+      style={{ 
+        position: 'relative', 
+        width: `${size.w}px`, 
+        height: `${size.h}px`,
+        transition: 'width 0.4s ease, height 0.4s ease' // Smooth transition
+      }}
     >
       <canvas 
         ref={canvasRef}
@@ -149,17 +153,17 @@ const Live2DViewer = ({ petState, isDragging, modelUrl }) => {
           position: 'absolute', inset: 0,
           display: 'flex', flexDirection: 'column',
           alignItems: 'center', justifyContent: 'center',
-          color: '#ff8a65', fontSize: '12px', textAlign: 'center',
+          color: '#ff8a65', fontSize: '13px', textAlign: 'center',
           padding: '20px', pointerEvents: 'none', zIndex: 10,
-          background: status === 'error' ? 'rgba(0,0,0,0.55)' : 'transparent',
-          borderRadius: '12px', whiteSpace: 'pre-line',
+          background: status === 'error' ? 'rgba(0,0,0,0.6)' : 'transparent',
+          borderRadius: '16px', backdropFilter: 'blur(4px)'
         }}>
           {status === 'error'
-            ? <><div style={{ fontSize: '22px', marginBottom: '8px' }}>😿</div>
-                <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>召唤失败</div></>
-            : <div style={{ marginBottom: '6px' }}>✨ 正在穿越位面... ✨</div>
+            ? <><div style={{ fontSize: '24px', marginBottom: '8px' }}>⚠️</div>
+                <div style={{ fontWeight: 'bold' }}>模型载入异常</div></>
+            : <div style={{ fontWeight: '500' }}>✨ 召唤中... ✨</div>
           }
-          <div style={{ opacity: 0.9 }}>{statusMsg}</div>
+          <div style={{ opacity: 0.8, marginTop: '5px' }}>{statusMsg}</div>
         </div>
       )}
     </div>
