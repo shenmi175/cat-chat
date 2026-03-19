@@ -177,7 +177,11 @@ ipcMain.on('set-ignore-mouse-events', (event, ignore, options) => {
 
 ipcMain.on('resize-window', (event, width, height) => {
   if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.setSize(Math.round(width), Math.round(height), true);
+    const w = Math.round(width);
+    const h = Math.round(height);
+    console.log(`[Main] Resizing window to: ${w}x${h}`);
+    mainWindow.setResizable(true);
+    mainWindow.setSize(w, h, false);
   }
 });
 
