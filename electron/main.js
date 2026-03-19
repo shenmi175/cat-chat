@@ -65,8 +65,8 @@ function getPreloadPath(name) {
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 300,
-    height: 300,
+    width: 320,
+    height: 350,
     transparent: true,
     backgroundColor: '#00000000',
     frame: false,
@@ -164,6 +164,14 @@ ipcMain.on('drag-update', (_event, { dx, dy }) => {
     const [wx, wy] = mainWindow.getPosition();
     // Use Math.round to avoid subpixel positioning errors
     mainWindow.setPosition(Math.round(wx + dx), Math.round(wy + dy));
+  }
+});
+
+// ─── IPC: Window Mouse Events ─────────────────────────────────────────────────
+ipcMain.on('set-ignore-mouse-events', (event, ignore, options) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  if (win) {
+    win.setIgnoreMouseEvents(ignore, options);
   }
 });
 

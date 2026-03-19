@@ -7,8 +7,8 @@ window.PIXI = PIXI;
 // Force legacy WebGL to avoid checkMaxIfStatementsInShader crash in Electron
 if (PIXI.settings) PIXI.settings.PREFER_ENV = 0;
 
-const CANVAS_W = 300;
-const CANVAS_H = 300;
+const CANVAS_W = 320;
+const CANVAS_H = 350;
 
 // Auto-fit: scale model so it fills the canvas nicely, regardless of model
 function autoFit(model) {
@@ -20,10 +20,10 @@ function autoFit(model) {
   const scale = Math.min(CANVAS_W / natW, CANVAS_H / natH) * 0.9;
   model.scale.set(scale);
 
-  // Center horizontally; show head/upper-body by anchoring at top-center
-  model.anchor.set(0.5, 0);
+  // Position at the bottom-center
+  model.anchor.set(0.5, 1);
   model.x = CANVAS_W / 2;
-  model.y = 0;
+  model.y = CANVAS_H;
 
   console.log(`Live2D: autoFit  nat=${natW}×${natH}  scale=${scale.toFixed(4)}`);
 }

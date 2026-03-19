@@ -10,6 +10,7 @@ function App() {
   const [isThinking, setIsThinking] = useState(false);
   const [catState, setCatState] = useState('idle'); // idle, happy, thinking
   const [modelUrl, setModelUrl] = useState('/CubismSdkForWeb-5-r.4/Samples/Resources/Wanko/Wanko.model3.json');
+  const [showInput, setShowInput] = useState(false);
 
   const lastStateHash = useRef('');
   const lastTriggerReason = useRef(''); // Track the REASON for the last proactive talk
@@ -131,6 +132,7 @@ function App() {
       const reply = await getUniqueReply(prompt, true);
       const cleanReply = await extractAndSaveMemories(reply);
       addMessage(cleanReply, 'cat');
+      setShowInput(false);
       
       // Update history buffer
       prevResponseRef.current = [...prevResponseRef.current.slice(-2), cleanReply.trim()];
@@ -162,6 +164,7 @@ function App() {
       const reply = await getUniqueReply(prompt, false);
       const cleanReply = await extractAndSaveMemories(reply);
       addMessage(cleanReply, 'cat');
+      setShowInput(false);
 
       // Update history buffer for user chat too
       prevResponseRef.current = [...prevResponseRef.current.slice(-2), cleanReply.trim()];
@@ -194,6 +197,8 @@ function App() {
       <div 
         className="cat-area" 
         onMouseDown={handleMouseDown}
+        onMouseEnter={() => window.electronAPI.setIgnoreMouseEvents(false)}
+        onMouseLeave={() => window.electronAPI.setIgnoreMouseEvents(true, { forward: true })}
       >
         <Live2DViewer 
           catState={catState} 
@@ -202,7 +207,11 @@ function App() {
         />
       </div>
 
-      <div className="chat-area no-drag">
+      <div 
+        className="chat-area no-drag"
+        onMouseEnter={() => window.electronAPI.setIgnoreMouseEvents(false)}
+        onMouseLeave={() => window.electronAPI.setIgnoreMouseEvents(true, { forward: true })}
+      >
         {messages.length > 0 && (
           <ChatBubble 
             message={messages[messages.length - 1].text} 
@@ -214,7 +223,11 @@ function App() {
         )}
       </div>
 
-      <div className="input-area no-drag">
+      <div 
+        className={`input-area no-drag ${showInput ? 'visible' : ''}`}
+        onMouseEnter={() => window.electronAPI.setIgnoreMouseEvents(false)}
+        onMouseLeave={() => window.electronAPI.setIgnoreMouseEvents(true, { forward: true })}
+      >
          <form onSubmit={(e) => {
            e.preventDefault();
            if(e.target.msg.value) {
@@ -222,10 +235,20 @@ function App() {
              e.target.msg.value = '';
            }
          }}>
-           <input name="msg" type="text" placeholder="摸摸头并对它说话..." autoComplete="off" />
+           <input name="msg" type="text" placeholder="摸摸头并对它说话..." autoComplete="off" autoFocus={showInput} />
            <button type="submit">发送</button>
          </form>
       </div>
+
+      {!showInput && (
+        <div 
+          className="speak-trigger" 
+          onClick={() => setShowInput(true)}
+          title="和它说话"
+        >
+          💬
+        </div>
+      )}
     </div>
   );
 }
