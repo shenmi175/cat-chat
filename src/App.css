@@ -49,7 +49,7 @@ html, body, #root {
 /* --- Chat overlay --- */
 .chat-area {
   position: absolute;
-  top: 40px;             /* Lowered a bit to avoid getting cut off by window edge or just feel better */
+  top: 90px;             /* Lowered to accommodate the input area above it */
   left: 0;
   right: 0;
   padding-top: 10px;
@@ -111,11 +111,11 @@ html, body, #root {
 /* --- Input bar pinned at bottom --- */
 .input-area {
   position: absolute;
-  bottom: 0px;
+  top: 0px;             /* Move to the very top */
   left: 0;
   right: 0;
   padding: 15px;
-  background: linear-gradient(to top, rgba(255,255,255,0.4), transparent);
+  background: linear-gradient(to bottom, rgba(255,255,255,0.4), transparent);
   flex-shrink: 0;
   display: flex;
   justify-content: center;
