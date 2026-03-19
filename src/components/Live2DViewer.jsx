@@ -5,6 +5,8 @@ import { Live2DModel } from 'pixi-live2d-display';
 window.PIXI = PIXI;
 if (PIXI.settings) PIXI.settings.PREFER_ENV = 0;
 
+const TARGET_MODEL_H = 400;
+
 const Live2DViewer = ({ petState, isDragging, modelUrl, globalScale = 1.0, onModelLoad }) => {
   const canvasRef = useRef(null);
   const appRef    = useRef(null);
@@ -41,20 +43,21 @@ const Live2DViewer = ({ petState, isDragging, modelUrl, globalScale = 1.0, onMod
         const model = await Live2DModel.from(modelUrl, { autoInteract: false });
         if (cancelled) { model.destroy(); return; }
 
-        // 3. Extract Natural Dimensions
+        // 3. Size Calculation (Normalized to 400px base)
         const natW = model.internalModel?.originalWidth  || model.width  || 400;
         const natH = model.internalModel?.originalHeight || model.height || 400;
+        
+        const renderScale = (TARGET_MODEL_H / natH) * globalScale;
+        const scaledW = natW * renderScale;
+        const scaledH = natH * renderScale;
 
         // 4. Update Local State and Parent
-        const scaledW = natW * globalScale;
-        const scaledH = natH * globalScale;
-
         setLocalSize({ w: scaledW, h: scaledH });
         canvasRef.current.width  = scaledW;
         canvasRef.current.height = scaledH;
         app.renderer.resize(scaledW, scaledH);
 
-        model.scale.set(globalScale);
+        model.scale.set(renderScale);
         model.anchor.set(0.5, 0.5);
         model.x = scaledW / 2;
         model.y = scaledH / 2;

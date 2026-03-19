@@ -121,14 +121,15 @@ function App() {
   // --- Dynamic Window Sizing ---
   useEffect(() => {
     const gap = 10;
-    const totalW = Math.max(modelSize.width, 350); // Minimum width for UI safety
+    const minW = 200 * (cfg.globalScale || 1.0);
+    const totalW = Math.max(modelSize.width, minW); 
     const totalH = (bubbleH > 0 ? bubbleH + gap : 0) + 
                    modelSize.height + 
                    (showInput ? gap + inputH : 0);
     
-    // Throttle or debounce if flickering occurs, but for now direct
-    window.electronAPI?.resizeWindow(Math.round(totalW), Math.round(totalH));
-  }, [modelSize, bubbleH, inputH, showInput]);
+    // Use a small buffer to avoid clipping or loops
+    window.electronAPI?.resizeWindow(Math.round(totalW + 2), Math.round(totalH + 2));
+  }, [modelSize, bubbleH, inputH, showInput, cfg.globalScale]);
 
   const extractAndSaveMemories = async (reply) => {
     const memoryRegex = /\[MEMORY:\s*(.*?)\]/g;
