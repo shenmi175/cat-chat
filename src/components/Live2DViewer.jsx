@@ -20,39 +20,29 @@ const Live2DViewer = ({ petState, isDragging, modelUrl }) => {
   const [statusMsg, setStatusMsg] = useState('');
   const [size,      setSize]      = useState({ w: 350, h: TARGET_MODEL_H + UI_PADDING_H });
 
-  // 1. One-time Pixi Application setup
   useEffect(() => {
-    if (!canvasRef.current) return;
-    
-    const app = new PIXI.Application({
-      view: canvasRef.current,
-      width: size.w,
-      height: size.h,
-      backgroundAlpha: 0,
-      transparent: true,
-      antialias: true,
-      autoStart: true,
-      resolution: window.devicePixelRatio || 1,
-    });
-    
-    appRef.current = app;
-
-    return () => {
-      if (appRef.current) {
-        appRef.current.destroy(true, { children: true });
-        appRef.current = null;
-      }
-    };
-  }, []); // Only once
-
-  // 2. Model Loading & Auto-resizing logic
-  useEffect(() => {
-    const app = appRef.current;
-    if (!app || !modelUrl) return;
+    if (!canvasRef.current || !modelUrl) return;
     
     let cancelled = false;
 
-    const loadNewModel = async () => {
+    const initAndLoad = async () => {
+      // 1. Initialize PIXI App once if needed
+      if (!appRef.current) {
+        const app = new PIXI.Application({
+          view: canvasRef.current,
+          width: size.w,
+          height: size.h,
+          backgroundAlpha: 0,
+          transparent: true,
+          antialias: true,
+          autoStart: true,
+          resolution: window.devicePixelRatio || 1,
+        });
+        appRef.current = app;
+      }
+      
+      const app = appRef.current;
+
       if (!window.Live2DCubismCore) {
         setStatus('error');
         setStatusMsg('缺少核心驱动');
@@ -62,7 +52,7 @@ const Live2DViewer = ({ petState, isDragging, modelUrl }) => {
       setStatus('loading');
       setStatusMsg('变换形态中...');
 
-      // Clean up previous model
+      // 2. Clean up previous model
       if (modelRef.current) {
         app.stage.removeChild(modelRef.current);
         modelRef.current.destroy();
@@ -81,7 +71,7 @@ const Live2DViewer = ({ petState, isDragging, modelUrl }) => {
         const windowW = Math.max(Math.round(natW * scale), 300);
         const windowH = Math.round(natH * scale) + UI_PADDING_H;
         
-        // Update local state and canvas/app size
+        // Update local and Electron state
         setSize({ w: windowW, h: windowH });
         app.renderer.resize(windowW, windowH);
         
@@ -90,7 +80,6 @@ const Live2DViewer = ({ petState, isDragging, modelUrl }) => {
         model.x = windowW / 2;
         model.y = windowH;
 
-        // Sync with Electron
         window.electronAPI.resizeWindow(windowW, windowH);
 
         app.stage.addChild(model);
@@ -103,20 +92,34 @@ const Live2DViewer = ({ petState, isDragging, modelUrl }) => {
 
         if (!cancelled) { setStatus('ready'); setStatusMsg(''); }
       } catch (e) {
-        console.error('Live2D: switch error', e);
+        console.error('Live2D Error:', e);
         if (!cancelled) {
           setStatus('error');
-          setStatusMsg(`召唤失败: ${modelUrl.split('/').pop()}`);
+          setStatusMsg(`无法加载角色: ${modelUrl.split('/').pop()}`);
         }
       }
     };
 
-    loadNewModel();
+    initAndLoad();
 
     return () => { cancelled = true; };
-  }, [modelUrl]);
+  }, [modelUrl]); // Re-run when modelUrl changes
 
-  // 3. Animation Logic
+  // Cleanup Pixi App on unmount only
+  useEffect(() => {
+    return () => {
+      if (appRef.current) {
+        appRef.current.destroy(true, { children: true });
+        appRef.current = null;
+      }
+      if (modelRef.current) {
+        modelRef.current.destroy();
+        modelRef.current = null;
+      }
+    };
+  }, []);
+
+  // Animation logic
   useEffect(() => {
     const model = modelRef.current;
     if (!model || status !== 'ready') return;
@@ -134,7 +137,7 @@ const Live2DViewer = ({ petState, isDragging, modelUrl }) => {
         position: 'relative', 
         width: `${size.w}px`, 
         height: `${size.h}px`,
-        transition: 'width 0.4s ease, height 0.4s ease' // Smooth transition
+        transition: 'width 0.3s ease, height 0.3s ease'
       }}
     >
       <canvas 
@@ -160,8 +163,8 @@ const Live2DViewer = ({ petState, isDragging, modelUrl }) => {
         }}>
           {status === 'error'
             ? <><div style={{ fontSize: '24px', marginBottom: '8px' }}>⚠️</div>
-                <div style={{ fontWeight: 'bold' }}>模型载入异常</div></>
-            : <div style={{ fontWeight: '500' }}>✨ 召唤中... ✨</div>
+                <div style={{ fontWeight: 'bold' }}>模型同步故障</div></>
+            : <div style={{ fontWeight: '500' }}>✨ 正在构建形态... ✨</div>
           }
           <div style={{ opacity: 0.8, marginTop: '5px' }}>{statusMsg}</div>
         </div>
