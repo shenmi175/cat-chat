@@ -190,6 +190,17 @@ function App() {
 
     // 2. Persistent long history
     window.electronAPI?.addToHistory({ text, sender, time: timeStr });
+
+    // 3. Auto-clear floating UI after 6 seconds
+    setTimeout(() => {
+      setMessages(prev => {
+        // Only remove if this message is still the last one (prevents clearing newer messages prematurely)
+        if (prev.length > 0 && prev[prev.length - 1].text === text) {
+           return [];
+        }
+        return prev;
+      });
+    }, 6000);
   };
 
   return (
@@ -244,6 +255,8 @@ function App() {
         <div 
           className="speak-trigger" 
           onClick={() => setShowInput(true)}
+          onMouseEnter={() => window.electronAPI.setIgnoreMouseEvents(false)}
+          onMouseLeave={() => window.electronAPI.setIgnoreMouseEvents(true, { forward: true })}
           title="和它说话"
         >
           💬

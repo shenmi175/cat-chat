@@ -49,7 +49,7 @@ html, body, #root {
 /* --- Chat overlay --- */
 .chat-area {
   position: absolute;
-  top: 20px;             /* Positioned at the top */
+  top: 40px;             /* Lowered a bit to avoid getting cut off by window edge or just feel better */
   left: 0;
   right: 0;
   padding-top: 10px;
@@ -86,10 +86,10 @@ html, body, #root {
 .chat-bubble::after {
   content: '';
   position: absolute;
-  top: -8px;             /* Indicator points UP or just removed for better look */
+  bottom: -10px;         /* Move to bottom */
   left: 50%;
-  transform: translateX(-50%) rotate(180deg);
-  border-width: 8px 8px 0;
+  transform: translateX(-50%);
+  border-width: 10px 10px 0;
   border-style: solid;
   border-color: rgba(255, 255, 255, 0.7) transparent transparent transparent;
 }
