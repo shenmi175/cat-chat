@@ -65,9 +65,26 @@ const Live2DViewer = ({ petState, isDragging, modelUrl, globalScale = 1.0, onMod
         app.stage.addChild(model);
         modelRef.current = model;
 
-        // 5. Notify Parent about the character's footprint
+        // 5. 'Viewport Snipping' - Crop canvas to pixel bounds
+        app.ticker.update(); // Flush current frame
+        const bounds = model.getBounds();
+
+        // Recenter model to fill the NEW snipped canvas
+        model.x = -bounds.x + (bounds.width / 2);
+        model.y = -bounds.y + (bounds.height / 2);
+
+        // Update renderer to exactly the bounding box
+        const finalW = Math.max(bounds.width, 10);
+        const finalH = Math.max(bounds.height, 10);
+        
+        setLocalSize({ w: finalW, h: finalH });
+        canvasRef.current.width  = finalW;
+        canvasRef.current.height = finalH;
+        app.renderer.resize(finalW, finalH);
+
+        // 6. Notify Parent about the exact pixel footprint
         if (onModelLoad) {
-          onModelLoad({ width: scaledW, height: scaledH });
+          onModelLoad({ width: finalW, height: finalH });
         }
       } catch (e) {
         console.error('[Live2D] Load failed:', e);

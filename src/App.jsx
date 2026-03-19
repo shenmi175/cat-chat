@@ -246,20 +246,22 @@ function App() {
   return (
     <div className="app-container" style={{ '--app-scale': globalScale }}>
       {/* 1. Chat Area (Adaptive Gap 10px above head) */}
-      <div 
-        ref={bubbleRef}
-        className="chat-area no-drag"
-      >
-        {messages.length > 0 && (
-          <ChatBubble 
-            message={messages[messages.length - 1].text} 
-            sender={messages[messages.length - 1].sender} 
-          />
-        )}
-        {isThinking && (
-          <div className="thinking-bubble">正在绞尽脑汁想词...</div>
-        )}
-      </div>
+      {(messages.length > 0 || isThinking) && (
+        <div 
+          ref={bubbleRef}
+          className="chat-area no-drag"
+        >
+          {messages.length > 0 && (
+            <ChatBubble 
+              message={messages[messages.length - 1].text} 
+              sender={messages[messages.length - 1].sender} 
+            />
+          )}
+          {isThinking && (
+            <div className="thinking-bubble">正在绞尽脑汁想词...</div>
+          )}
+        </div>
+      )}
 
       {/* 2. Pet Area (Core) */}
       <div 
@@ -276,21 +278,23 @@ function App() {
       </div>
 
       {/* 3. Input Area (Adaptive Gap 10px below feet) */}
-      <div 
-        ref={inputRef}
-        className={`input-area no-drag ${showInput ? 'visible' : ''}`}
-      >
-         <form onSubmit={(e) => {
-           e.preventDefault();
-           if(e.target.msg.value) {
-             handleSendMessage(e.target.msg.value);
-             e.target.msg.value = '';
-           }
-         }}>
-           <input name="msg" type="text" placeholder="摸摸头并对它说话..." autoComplete="off" autoFocus={showInput} />
-           <button type="submit">发送</button>
-         </form>
-      </div>
+      {showInput && (
+        <div 
+          ref={inputRef}
+          className="input-area no-drag visible"
+        >
+           <form onSubmit={(e) => {
+             e.preventDefault();
+             if(e.target.msg.value) {
+               handleSendMessage(e.target.msg.value);
+               e.target.msg.value = '';
+             }
+           }}>
+             <input name="msg" type="text" placeholder="摸摸头并对它说话..." autoComplete="off" autoFocus={showInput} />
+             <button type="submit">发送</button>
+           </form>
+        </div>
+      )}
 
       {/* Speak trigger (floating, but z-indexed) */}
       {!showInput && (
