@@ -208,8 +208,6 @@ function App() {
       <div 
         className="pet-area" 
         onMouseDown={handleMouseDown}
-        onMouseEnter={() => window.electronAPI.setIgnoreMouseEvents(false)}
-        onMouseLeave={() => window.electronAPI.setIgnoreMouseEvents(true, { forward: true })}
       >
         <Live2DViewer 
           petState={petState} 
@@ -220,8 +218,6 @@ function App() {
 
       <div 
         className="chat-area no-drag"
-        onMouseEnter={() => window.electronAPI.setIgnoreMouseEvents(false)}
-        onMouseLeave={() => window.electronAPI.setIgnoreMouseEvents(true, { forward: true })}
       >
         {messages.length > 0 && (
           <ChatBubble 
@@ -236,8 +232,6 @@ function App() {
 
       <div 
         className={`input-area no-drag ${showInput ? 'visible' : ''}`}
-        onMouseEnter={() => window.electronAPI.setIgnoreMouseEvents(false)}
-        onMouseLeave={() => window.electronAPI.setIgnoreMouseEvents(true, { forward: true })}
       >
          <form onSubmit={(e) => {
            e.preventDefault();
@@ -255,8 +249,6 @@ function App() {
         <div 
           className="speak-trigger" 
           onClick={() => setShowInput(true)}
-          onMouseEnter={() => window.electronAPI.setIgnoreMouseEvents(false)}
-          onMouseLeave={() => window.electronAPI.setIgnoreMouseEvents(true, { forward: true })}
           title="和它说话"
         >
           💬
