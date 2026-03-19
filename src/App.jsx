@@ -11,6 +11,7 @@ function App() {
   const [petState, setPetState] = useState('idle'); // idle, happy, thinking
   const [modelUrl, setModelUrl] = useState('/CubismSdkForWeb-5-r.4/Samples/Resources/Wanko/Wanko.model3.json');
   const [showInput, setShowInput] = useState(false);
+  const [cfg, setCfg] = useState({});
 
   const lastStateHash = useRef('');
   const lastTriggerReason = useRef(''); // Track the REASON for the last proactive talk
@@ -81,12 +82,18 @@ function App() {
 
   // --- Initial Config & Listeners ---
   useEffect(() => {
-    window.electronAPI?.getConfig().then(cfg => {
-      if (cfg?.modelUrl) setModelUrl(cfg.modelUrl);
+    window.electronAPI?.getConfig().then(newCfg => {
+      if (newCfg) {
+        setCfg(newCfg);
+        if (newCfg.modelUrl) setModelUrl(newCfg.modelUrl);
+      }
     });
 
     const cleanup = window.electronAPI?.onConfigUpdated((newCfg) => {
-      if (newCfg?.modelUrl) setModelUrl(newCfg.modelUrl);
+      if (newCfg) {
+        setCfg(newCfg);
+        if (newCfg.modelUrl) setModelUrl(newCfg.modelUrl);
+      }
     });
     return () => {
       if (typeof cleanup === 'function') cleanup();
