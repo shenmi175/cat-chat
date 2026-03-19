@@ -203,8 +203,10 @@ function App() {
     }, 6000);
   };
 
+  const globalScale = cfg.globalScale || 1.0;
+
   return (
-    <div className="app-container">
+    <div className="app-container" style={{ '--app-scale': globalScale }}>
       <div 
         className="pet-area" 
         onMouseDown={handleMouseDown}
@@ -213,6 +215,7 @@ function App() {
           petState={petState} 
           isDragging={isDragging}
           modelUrl={modelUrl}
+          globalScale={globalScale}
         />
       </div>
 

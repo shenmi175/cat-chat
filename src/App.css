@@ -116,7 +116,7 @@ html, body, #root {
   top: 0px;
   left: 0;
   right: 0;
-  height: 70px;
+  height: calc(70px * var(--app-scale));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -134,10 +134,10 @@ html, body, #root {
 
 form {
   display: flex;
-  gap: 8px;
+  gap: calc(8px * var(--app-scale));
   width: 100%;
-  max-width: 320px;
-  padding: 0 20px;
+  max-width: calc(320px * var(--app-scale));
+  padding: 0 calc(20px * var(--app-scale));
 }
 
 input {

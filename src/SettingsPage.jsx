@@ -184,6 +184,25 @@ function SettingsPage() {
             </section>
 
             <section className="settings-section glass-card">
+              <div className="label-with-value">
+                <label className="settings-label">桌宠整体缩放 (Global Scale)</label>
+                <span className="scale-value">x{cfg.globalScale || 1.0}</span>
+              </div>
+              <input
+                type="range"
+                className="settings-range"
+                min="0.5"
+                max="2.0"
+                step="0.1"
+                value={cfg.globalScale || 1.0}
+                onChange={(e) => setCfg({ ...cfg, globalScale: parseFloat(e.target.value) })}
+              />
+              <p style={{ fontSize: '12px', opacity: 0.6, marginTop: '8px' }}>
+                调整此项将同步改变角色大小、对话框和字体大小。
+              </p>
+            </section>
+
+            <section className="settings-section glass-card">
               <label className="settings-label">性格与行为准则</label>
               <textarea
                 className="settings-textarea"

@@ -8,11 +8,15 @@ if (PIXI.settings) PIXI.settings.PREFER_ENV = 0;
 const TARGET_MODEL_H = 400; 
 const UI_PADDING_H = 150; 
 
-const Live2DViewer = ({ petState, isDragging, modelUrl }) => {
+const Live2DViewer = ({ petState, isDragging, modelUrl, globalScale = 1.0 }) => {
   const canvasRef = useRef(null);
   const appRef    = useRef(null);
   const modelRef  = useRef(null);
   const [size, setSize] = useState({ w: 350, h: 550 });
+
+  // Scaled constants
+  const scaledModelH = TARGET_MODEL_H * globalScale;
+  const scaledPaddingH = UI_PADDING_H * globalScale;
 
   useEffect(() => {
     if (!canvasRef.current || !modelUrl) return;
@@ -24,8 +28,8 @@ const Live2DViewer = ({ petState, isDragging, modelUrl }) => {
       if (!appRef.current) {
         appRef.current = new PIXI.Application({
           view: canvasRef.current,
-          width: 350,
-          height: 550,
+          width: size.w,
+          height: size.h,
           backgroundAlpha: 0,
           antialias: true,
           autoStart: true,
@@ -47,10 +51,10 @@ const Live2DViewer = ({ petState, isDragging, modelUrl }) => {
         // 3. Size Calculation
         const natW = model.internalModel?.originalWidth || model.width || 800;
         const natH = model.internalModel?.originalHeight || model.height || 1000;
-        const scale = TARGET_MODEL_H / natH;
+        const scale = scaledModelH / natH;
         
-        const winW = Math.max(Math.round(natW * scale), 300);
-        const winH = Math.round(natH * scale) + UI_PADDING_H;
+        const winW = Math.max(Math.round(natW * scale), 300 * globalScale);
+        const winH = Math.round(natH * scale) + scaledPaddingH;
 
         // 4. Apply Sizes
         setSize({ w: winW, h: winH });
@@ -75,7 +79,7 @@ const Live2DViewer = ({ petState, isDragging, modelUrl }) => {
 
     run();
     return () => { cancelled = true; };
-  }, [modelUrl]);
+  }, [modelUrl, globalScale]);
 
   // Motion control
   useEffect(() => {
