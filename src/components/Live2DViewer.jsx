@@ -21,13 +21,19 @@ const Live2DViewer = ({ petState, isDragging, modelUrl }) => {
   const [size,      setSize]      = useState({ w: 350, h: TARGET_MODEL_H + UI_PADDING_H });
 
   useEffect(() => {
-    if (!canvasRef.current || !modelUrl) return;
+    if (!canvasRef.current || !modelUrl) {
+       console.warn('Live2D: Missing canvas or modelUrl', { hasCanvas: !!canvasRef.current, modelUrl });
+       return;
+    }
     
     let cancelled = false;
 
     const initAndLoad = async () => {
+      console.log('Live2D: Starting initAndLoad for', modelUrl);
+      
       // 1. Initialize PIXI App once if needed
       if (!appRef.current) {
+        console.log('Live2D: Creating new PIXI.Application');
         const app = new PIXI.Application({
           view: canvasRef.current,
           width: size.w,
@@ -46,31 +52,42 @@ const Live2DViewer = ({ petState, isDragging, modelUrl }) => {
       if (!window.Live2DCubismCore) {
         setStatus('error');
         setStatusMsg('缺少核心驱动');
+        console.error('Live2D: Missing Cubism Core');
         return;
       }
 
       setStatus('loading');
-      setStatusMsg('变换形态中...');
+      setStatusMsg('正在构筑形态...');
 
       // 2. Clean up previous model
       if (modelRef.current) {
+        console.log('Live2D: Cleaning up old model');
         app.stage.removeChild(modelRef.current);
         modelRef.current.destroy();
         modelRef.current = null;
       }
 
       try {
+        console.log('Live2D: Loading model from', modelUrl);
         const model = await Live2DModel.from(modelUrl, { autoInteract: false });
-        if (cancelled) { model.destroy(); return; }
+        if (cancelled) { 
+          console.log('Live2D: Load cancelled for', modelUrl);
+          model.destroy(); 
+          return; 
+        }
 
         // Calculate dimensions
         const natW = model.internalModel?.originalWidth  || model.width  || 1000;
         const natH = model.internalModel?.originalHeight || model.height || 1000;
         
-        const scale = TARGET_MODEL_H / natH;
+        console.log('Live2D: Model loaded. Natural size:', natW, 'x', natH);
+
+        const scale = TARGET_MODEL_H / (natH || 1000);
         const windowW = Math.max(Math.round(natW * scale), 300);
         const windowH = Math.round(natH * scale) + UI_PADDING_H;
         
+        console.log('Live2D: Resizing to', windowW, 'x', windowH, 'scale:', scale);
+
         // Update local and Electron state
         setSize({ w: windowW, h: windowH });
         app.renderer.resize(windowW, windowH);
@@ -80,6 +97,7 @@ const Live2DViewer = ({ petState, isDragging, modelUrl }) => {
         model.x = windowW / 2;
         model.y = windowH;
 
+        console.log('Live2D: Requesting Electron resizeWindow');
         window.electronAPI.resizeWindow(windowW, windowH);
 
         app.stage.addChild(model);
@@ -91,23 +109,28 @@ const Live2DViewer = ({ petState, isDragging, modelUrl }) => {
         });
 
         if (!cancelled) { setStatus('ready'); setStatusMsg(''); }
+        console.log('Live2D: Render ready');
       } catch (e) {
-        console.error('Live2D Error:', e);
+        console.error('Live2D Error details:', e);
         if (!cancelled) {
           setStatus('error');
-          setStatusMsg(`无法加载角色: ${modelUrl.split('/').pop()}`);
+          setStatusMsg(`加载异常: ${modelUrl.split('/').pop()}`);
         }
       }
     };
 
     initAndLoad();
 
-    return () => { cancelled = true; };
+    return () => { 
+      console.log('Live2D: useEffect cleanup (cancelled=true)');
+      cancelled = true; 
+    };
   }, [modelUrl]); // Re-run when modelUrl changes
 
   // Cleanup Pixi App on unmount only
   useEffect(() => {
     return () => {
+      console.log('Live2D: Component unmounting, destroying app');
       if (appRef.current) {
         appRef.current.destroy(true, { children: true });
         appRef.current = null;
@@ -137,7 +160,7 @@ const Live2DViewer = ({ petState, isDragging, modelUrl }) => {
         position: 'relative', 
         width: `${size.w}px`, 
         height: `${size.h}px`,
-        transition: 'width 0.3s ease, height 0.3s ease'
+        overflow: 'visible'
       }}
     >
       <canvas 
@@ -164,7 +187,7 @@ const Live2DViewer = ({ petState, isDragging, modelUrl }) => {
           {status === 'error'
             ? <><div style={{ fontSize: '24px', marginBottom: '8px' }}>⚠️</div>
                 <div style={{ fontWeight: 'bold' }}>模型同步故障</div></>
-            : <div style={{ fontWeight: '500' }}>✨ 正在构建形态... ✨</div>
+            : <div style={{ fontWeight: '500' }}>✨ 召唤中... ✨</div>
           }
           <div style={{ opacity: 0.8, marginTop: '5px' }}>{statusMsg}</div>
         </div>
