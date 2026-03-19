@@ -12,7 +12,12 @@ function App() {
   const [modelUrl, setModelUrl] = useState('/CubismSdkForWeb-5-r.4/Samples/Resources/Wanko/Wanko.model3.json');
   const [showInput, setShowInput] = useState(false);
   const [cfg, setCfg] = useState({});
-  const [headPos, setHeadPos] = useState(200);
+  const [modelSize, setModelSize] = useState({ width: 300, height: 400 });
+  const [bubbleH, setBubbleH] = useState(0);
+  const [inputH, setInputH] = useState(0);
+
+  const bubbleRef = useRef(null);
+  const inputRef = useRef(null);
 
   const lastStateHash = useRef('');
   const lastTriggerReason = useRef(''); // Track the REASON for the last proactive talk
@@ -90,16 +95,40 @@ function App() {
       }
     });
 
-    const cleanup = window.electronAPI?.onConfigUpdated((newCfg) => {
+    const cleanupCfg = window.electronAPI?.onConfigUpdated((newCfg) => {
       if (newCfg) {
         setCfg(newCfg);
         if (newCfg.modelUrl) setModelUrl(newCfg.modelUrl);
       }
     });
+
+    // --- Height Observers ---
+    const obs = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        if (entry.target === bubbleRef.current) setBubbleH(entry.contentRect.height);
+        if (entry.target === inputRef.current) setInputH(entry.contentRect.height);
+      }
+    });
+    if (bubbleRef.current) obs.observe(bubbleRef.current);
+    if (inputRef.current) obs.observe(inputRef.current);
+
     return () => {
-      if (typeof cleanup === 'function') cleanup();
+      if (typeof cleanupCfg === 'function') cleanupCfg();
+      obs.disconnect();
     };
   }, []);
+
+  // --- Dynamic Window Sizing ---
+  useEffect(() => {
+    const gap = 10;
+    const totalW = Math.max(modelSize.width, 350); // Minimum width for UI safety
+    const totalH = (bubbleH > 0 ? bubbleH + gap : 0) + 
+                   modelSize.height + 
+                   (showInput ? gap + inputH : 0);
+    
+    // Throttle or debounce if flickering occurs, but for now direct
+    window.electronAPI?.resizeWindow(Math.round(totalW), Math.round(totalH));
+  }, [modelSize, bubbleH, inputH, showInput]);
 
   const extractAndSaveMemories = async (reply) => {
     const memoryRegex = /\[MEMORY:\s*(.*?)\]/g;
@@ -215,22 +244,10 @@ function App() {
 
   return (
     <div className="app-container" style={{ '--app-scale': globalScale }}>
+      {/* 1. Chat Area (Adaptive Gap 10px above head) */}
       <div 
-        className="pet-area" 
-        onMouseDown={handleMouseDown}
-      >
-        <Live2DViewer 
-          petState={petState} 
-          isDragging={isDragging}
-          modelUrl={modelUrl}
-          globalScale={globalScale}
-          onHeadPosChange={setHeadPos}
-        />
-      </div>
-
-      <div 
+        ref={bubbleRef}
         className="chat-area no-drag"
-        style={{ top: headPos }}
       >
         {messages.length > 0 && (
           <ChatBubble 
@@ -243,7 +260,23 @@ function App() {
         )}
       </div>
 
+      {/* 2. Pet Area (Core) */}
       <div 
+        className="pet-area" 
+        onMouseDown={handleMouseDown}
+      >
+        <Live2DViewer 
+          petState={petState} 
+          isDragging={isDragging}
+          modelUrl={modelUrl}
+          globalScale={globalScale}
+          onModelLoad={setModelSize}
+        />
+      </div>
+
+      {/* 3. Input Area (Adaptive Gap 10px below feet) */}
+      <div 
+        ref={inputRef}
         className={`input-area no-drag ${showInput ? 'visible' : ''}`}
       >
          <form onSubmit={(e) => {
@@ -258,6 +291,7 @@ function App() {
          </form>
       </div>
 
+      {/* Speak trigger (floating, but z-indexed) */}
       {!showInput && (
         <div 
           className="speak-trigger" 

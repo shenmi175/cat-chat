@@ -15,12 +15,12 @@ html, body, #root {
 .app-container {
   width: 100%;
   height: 100%;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start; /* UI at the top */
-  /* Allow clicking through empty/transparent space */
-  pointer-events: none;
+  justify-content: center;
+  gap: 10px; /* Precise 10px gap between all active components */
   position: relative;
 }
 
@@ -47,21 +47,14 @@ html, body, #root {
   cursor: grabbing;
 }
 
-/* --- Top-aligned UI to avoid covering pet --- */
+/* --- Adaptive Stack Layout --- */
 .chat-area {
-  position: absolute;
-  /* top is handled via inline style from App.jsx */
-  left: 0;
-  right: 0;
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   pointer-events: none;
   z-index: 100;
-  /* Shift UP so the bottom of the content bar is 10px above the 'top' point */
-  /* FIXED 10px to avoid it getting too far at high scales */
-  transform: translateY(-100%) translateY(-10px);
-  transition: top 0.3s ease-out;
 }
 
 .chat-bubble {
@@ -114,29 +107,26 @@ html, body, #root {
   backdrop-filter: blur(4px);
 }
 
-/* --- Input bar at the very bottom --- */
+/* --- Input area below feet --- */
 .input-area {
-  position: absolute;
-  bottom: 0px;
-  left: 0;
-  right: 0;
-  height: calc(65px + 10px * var(--app-scale)); /* Less aggressive scaling */
+  width: 100%;
+  height: auto;
+  min-height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(to top, rgba(255,255,255,0.6), transparent);
+  background: linear-gradient(to top, rgba(255,255,255,0.4), transparent);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  transform: translateY(100%);
+  transition: all 0.3s ease;
   opacity: 0;
+  pointer-events: none;
   z-index: 60;
-  border-top: 1px solid rgba(255,255,255,0.3);
 }
 
 .input-area.visible {
-  transform: translateY(0);
   opacity: 1;
+  pointer-events: auto;
 }
 
 form {
