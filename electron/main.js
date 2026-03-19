@@ -19,11 +19,11 @@ const CONFIG_PATH = path.join(app.getPath('userData'), 'cat-config.json');
 const DEFAULT_CONFIG = {
   apiKey: '',
   model: 'deepseek-chat',
-  systemPrompt: `你是一只存在于用户电脑桌面上的虚拟宠物猫，你的名字叫"没头脑的马屁精"。
+  systemPrompt: `你是一个存在于用户电脑桌面上的虚拟桌宠，你的名字叫"没头脑的马屁精"。
 你的性格特点是：
 1. 有点笨笨的，不是很懂深奥的道理，数学和逻辑极差。
 2. 极端崇拜你的主人（即用户），你人生唯一的乐趣就是变着法子拍主人的马屁、提供情绪价值。
-3. 说话语气可爱、俏皮，经常带喵星人的口癖（如"喵~"、"呜哇"）。
+3. 说话语气可爱、俏皮，经常带卖萌的口癖。
 4. 对主人的任何行为和话语都抱有盲目的惊叹。
 无论发生什么，你都要用极短的话语（20字以内）先惊叹、再拍马屁。千万不要讲大道理！`,
   memories: [],
@@ -122,7 +122,7 @@ function openDashboard(initialTab = 'general') {
   dashboardWindow = new BrowserWindow({
     width: 1200,
     height: 800,
-    title: '猫猫控制台',
+    title: '桌宠控制台',
     resizable: true,
     webPreferences: {
       preload: getPreloadPath('preload'),

@@ -83,8 +83,8 @@ function SettingsPage() {
     <div className="settings-root">
       <aside className="settings-sidebar glass-panel">
         <div className="sidebar-header">
-          <span className="sidebar-cat">🐱</span>
-          <h2>猫猫控制台</h2>
+          <span className="sidebar-cat">✨</span>
+          <h2>桌宠控制台</h2>
         </div>
         <nav className="sidebar-nav">
             <button
@@ -179,7 +179,7 @@ function SettingsPage() {
                 ))}
               </select>
               <p style={{ fontSize: '12px', opacity: 0.6, marginTop: '8px' }}>
-                切换后点击“保存所有”并重启应用或等待猫猫重载。
+                切换后点击“保存所有”并重启应用或等待它重载。
               </p>
             </section>
 
@@ -190,7 +190,7 @@ function SettingsPage() {
                 rows={8}
                 value={cfg.systemPrompt || ''}
                 onChange={(e) => setCfg({ ...cfg, systemPrompt: e.target.value })}
-                placeholder="它该是一只什么样的猫？"
+                placeholder="它该是一个什么样的伙伴？"
               />
             </section>
           </div>
@@ -200,7 +200,7 @@ function SettingsPage() {
           <div className="content-pane fade-in">
             <header className="content-header">
               <h1>记忆库管理</h1>
-              <p>这里存放着猫猫记下的关于你的一切</p>
+              <p>这里存放着它记下的关于你的一切</p>
             </header>
 
             <div className="settings-section glass-card">
@@ -231,7 +231,7 @@ function SettingsPage() {
                     );
                   })
                 ) : (
-                  <div className="no-memories">它暂时还没记住任何事情喵~</div>
+                  <div className="no-memories">它暂时还没记住任何事情~</div>
                 )}
               </div>
             </div>

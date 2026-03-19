@@ -29,17 +29,17 @@ function HistoryPage() {
       <header className="history-header">
         <span className="history-icon">📜</span>
         <h1>时光档案卷轴</h1>
-        <p className="history-subtitle">记录你与猫猫共同度过的每一秒</p>
+        <p className="history-subtitle">记录你与它共同度过的每一秒</p>
       </header>
 
       <div className="history-list">
         {history.length === 0 ? (
-          <div className="no-history">还没有留下任何足迹喵...</div>
+          <div className="no-history">还没有留下任何足迹...</div>
         ) : (
           history.map((msg, i) => (
             <div key={i} className={`history-item ${msg.sender === 'user' ? 'user' : 'cat'}`}>
               <div className="history-avatar">
-                {msg.sender === 'user' ? '👤' : '🐱'}
+                {msg.sender === 'user' ? '👤' : '✨'}
               </div>
               <div className="history-bubble-wrap">
                 <div className="history-bubble">

@@ -28,7 +28,7 @@ function SensoryPage() {
       <header className="sensory-header glass-panel">
         <div className="sensory-logo">👁️</div>
         <div className="sensory-title-group">
-          <h1>猫猫感知中心</h1>
+          <h1>感知中心</h1>
           <p>实时观察桌面上正在发生的一切</p>
         </div>
       </header>
@@ -60,7 +60,7 @@ function SensoryPage() {
         <section className="sensory-tips glass-panel">
           <h3>💡 为什么会有“未知”？</h3>
           <p>
-            如果显示为“未知”，是因为猫猫缺乏获取屏幕信息的系统级权限，或者您正处于 <b>Linux Wayland</b> 等安全机制较高的显示服务中，它们默认阻止了跨窗口的数据拉取喵！
+            如果显示为“未知”，是因为它缺乏获取屏幕信息的系统级权限，或者您正处于 <b>Linux Wayland</b> 等安全机制较高的显示服务中，它们默认阻止了跨窗口的数据拉取！
           </p>
         </section>
       </div>

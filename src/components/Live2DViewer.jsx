@@ -28,7 +28,7 @@ function autoFit(model) {
   console.log(`Live2D: autoFit  nat=${natW}×${natH}  scale=${scale.toFixed(4)}`);
 }
 
-const Live2DViewer = ({ catState, isDragging, modelUrl }) => {
+const Live2DViewer = ({ petState, isDragging, modelUrl }) => {
   const containerRef = useRef(null);
   const appRef       = useRef(null);
   const modelRef     = useRef(null);
@@ -132,10 +132,10 @@ const Live2DViewer = ({ catState, isDragging, modelUrl }) => {
     if (!model || status !== 'ready') return;
     try {
       if (isDragging)                model.motion('Idle');
-      else if (catState === 'happy') model.motion(modelUrl.includes('katou') ? '' : 'TapBody');
-      else if (catState === 'thinking') model.motion('Idle');
+      else if (petState === 'happy') model.motion(modelUrl.includes('katou') ? '' : 'TapBody');
+      else if (petState === 'thinking') model.motion('Idle');
     } catch (_) {}
-  }, [catState, isDragging, modelUrl, status]);
+  }, [petState, isDragging, modelUrl, status]);
 
   return (
     <div

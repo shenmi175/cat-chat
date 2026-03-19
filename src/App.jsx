@@ -8,7 +8,7 @@ import './App.css';
 function App() {
   const [messages, setMessages] = useState([]);
   const [isThinking, setIsThinking] = useState(false);
-  const [catState, setCatState] = useState('idle'); // idle, happy, thinking
+  const [petState, setPetState] = useState('idle'); // idle, happy, thinking
   const [modelUrl, setModelUrl] = useState('/CubismSdkForWeb-5-r.4/Samples/Resources/Wanko/Wanko.model3.json');
   const [showInput, setShowInput] = useState(false);
 
@@ -118,7 +118,7 @@ function App() {
 
   const triggerProactiveTalk = async (systemData) => {
     setIsThinking(true);
-    setCatState('thinking');
+    setPetState('thinking');
     try {
       let prompt = `(系统通知：当前时间【${systemData.time}】`;
       if (systemData.hasBattery) {
@@ -127,7 +127,7 @@ function App() {
       if (systemData.activeApp) {
         prompt += `，主人当前正在使用软件【${systemData.activeApp}】（窗口标题：${systemData.activeWindow}）`;
       }
-      prompt += `。这是猫猫自动触发的对话，根据性格主动说一句话。记住：严禁重复你刚说过的话！)`;
+      prompt += `。这是桌宠随机触发的对话，根据性格主动说一句话。记住：严禁重复你刚说过的话！)`;
       
       const reply = await getUniqueReply(prompt, true);
       const cleanReply = await extractAndSaveMemories(reply);
@@ -137,8 +137,8 @@ function App() {
       // Update history buffer
       prevResponseRef.current = [...prevResponseRef.current.slice(-2), cleanReply.trim()];
       
-      setCatState('happy');
-      setTimeout(() => setCatState('idle'), 5000);
+      setPetState('happy');
+      setTimeout(() => setPetState('idle'), 5000);
     } catch (e) {
       console.error(e);
     } finally {
@@ -149,7 +149,7 @@ function App() {
   const handleSendMessage = async (text) => {
     addMessage(text, 'user');
     setIsThinking(true);
-    setCatState('thinking');
+    setPetState('thinking');
     try {
       const systemData = await getSystemState();
       
@@ -169,12 +169,12 @@ function App() {
       // Update history buffer for user chat too
       prevResponseRef.current = [...prevResponseRef.current.slice(-2), cleanReply.trim()];
 
-      setCatState('happy');
+      setPetState('happy');
     } catch (e) {
-      addMessage("呜呜喵...我脑子卡壳了连不上网了...", 'cat');
+      addMessage("呜呜...我脑子卡壳了连不上网了...", 'cat');
     } finally {
       setIsThinking(false);
-      setTimeout(() => setCatState('idle'), 5000);
+      setTimeout(() => setPetState('idle'), 5000);
     }
   };
 
@@ -201,7 +201,7 @@ function App() {
         onMouseLeave={() => window.electronAPI.setIgnoreMouseEvents(true, { forward: true })}
       >
         <Live2DViewer 
-          catState={catState} 
+          catState={petState} 
           isDragging={isDragging} 
           modelUrl={modelUrl}
         />
