@@ -6,8 +6,8 @@ window.PIXI = PIXI;
 if (PIXI.settings) PIXI.settings.PREFER_ENV = 0;
 
 const TARGET_MODEL_H = 400; 
-const UI_PADDING_H = 200; 
-const BOTTOM_UI_H = 95; // Space for input area (85px + 10px gap)
+const UI_PADDING_H = 80; 
+const BOTTOM_UI_H = 70; // Space for input area
 
 const Live2DViewer = ({ petState, isDragging, modelUrl, globalScale = 1.0, onHeadPosChange }) => {
   const canvasRef = useRef(null);
