@@ -14,6 +14,7 @@ const UI_PADDING_H = 150;
 
 const Live2DViewer = ({ petState, isDragging, modelUrl }) => {
   const containerRef = useRef(null);
+  const canvasRef    = useRef(null);
   const appRef       = useRef(null);
   const modelRef     = useRef(null);
 
@@ -22,7 +23,7 @@ const Live2DViewer = ({ petState, isDragging, modelUrl }) => {
   const [size,      setSize]      = useState({ w: 400, h: TARGET_MODEL_H + UI_PADDING_H });
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || !canvasRef.current) return;
     let cancelled = false;
 
     const run = async () => {
@@ -35,10 +36,14 @@ const Live2DViewer = ({ petState, isDragging, modelUrl }) => {
       setStatus('loading');
       setStatusMsg('正在连接次元...');
 
-      if (appRef.current) {
-        try { appRef.current.destroy(true, { children: true }); } catch (_) {}
-        appRef.current = null;
+      // Tear down previous model/app
+      if (modelRef.current) {
+        modelRef.current.destroy();
         modelRef.current = null;
+      }
+      if (appRef.current) {
+        appRef.current.destroy(false); // don't destroy the canvas we are reusing
+        appRef.current = null;
       }
 
       try {
@@ -49,13 +54,11 @@ const Live2DViewer = ({ petState, isDragging, modelUrl }) => {
         const natW = model.internalModel?.originalWidth  || model.width  || 1000;
         const natH = model.internalModel?.originalHeight || model.height || 1000;
         
-        // Scale so model height is exactly TARGET_MODEL_H
         const scale = TARGET_MODEL_H / natH;
         const displayW = Math.round(natW * scale);
         const displayH = Math.round(natH * scale);
         
-        // Window size: Model Width x (Model Height + UI space)
-        const windowW = Math.max(displayW, 300); // Minimum width for safety
+        const windowW = Math.max(displayW, 300);
         const windowH = displayH + UI_PADDING_H;
         
         setSize({ w: windowW, h: windowH });
@@ -64,16 +67,13 @@ const Live2DViewer = ({ petState, isDragging, modelUrl }) => {
         model.x = windowW / 2;
         model.y = windowH;
 
-        // Tell Electron to resize
-        window.electronAPI.resizeWindow(windowW, windowH);
-
-        // Create Pixi App
-        const canvas = document.createElement('canvas');
+        // Update canvas size
+        const canvas = canvasRef.current;
         canvas.width  = windowW;
         canvas.height = windowH;
-        canvas.style.cssText = `position:absolute;top:0;left:0;width:${windowW}px;height:${windowH}px;pointer-events:none;`;
-        containerRef.current.innerHTML = '';
-        containerRef.current.appendChild(canvas);
+
+        // Tell Electron to resize
+        window.electronAPI.resizeWindow(windowW, windowH);
 
         const app = new PIXI.Application({
           view: canvas,
@@ -107,10 +107,13 @@ const Live2DViewer = ({ petState, isDragging, modelUrl }) => {
     return () => {
       cancelled = true;
       if (appRef.current) {
-        try { appRef.current.destroy(true, { children: true }); } catch (_) {}
+        try { appRef.current.destroy(false); } catch (_) {}
         appRef.current = null;
       }
-      modelRef.current = null;
+      if (modelRef.current) {
+        try { modelRef.current.destroy(); } catch (_) {}
+        modelRef.current = null;
+      }
     };
   }, [modelUrl]);
 
@@ -130,6 +133,17 @@ const Live2DViewer = ({ petState, isDragging, modelUrl }) => {
       ref={containerRef}
       style={{ position: 'relative', width: `${size.w}px`, height: `${size.h}px` }}
     >
+      <canvas 
+        ref={canvasRef}
+        style={{ 
+          position: 'absolute', 
+          top: 0, 
+          left: 0, 
+          width: '100%', 
+          height: '100%', 
+          pointerEvents: 'none' 
+        }} 
+      />
       {status !== 'ready' && (
         <div style={{
           position: 'absolute', inset: 0,
