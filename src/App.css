@@ -142,8 +142,7 @@ form {
   display: flex;
   gap: calc(8px * var(--app-scale));
   width: 100%;
-  max-width: calc(320px * var(--app-scale));
-  padding: 0 calc(20px * var(--app-scale));
+  padding: 0 calc(15px * var(--app-scale));
 }
 
 input {
