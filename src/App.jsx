@@ -12,6 +12,7 @@ function App() {
   const [modelUrl, setModelUrl] = useState('/CubismSdkForWeb-5-r.4/Samples/Resources/Wanko/Wanko.model3.json');
   const [showInput, setShowInput] = useState(false);
   const [cfg, setCfg] = useState({});
+  const [headPos, setHeadPos] = useState(200);
 
   const lastStateHash = useRef('');
   const lastTriggerReason = useRef(''); // Track the REASON for the last proactive talk
@@ -223,11 +224,13 @@ function App() {
           isDragging={isDragging}
           modelUrl={modelUrl}
           globalScale={globalScale}
+          onHeadPosChange={setHeadPos}
         />
       </div>
 
       <div 
         className="chat-area no-drag"
+        style={{ top: headPos }}
       >
         {messages.length > 0 && (
           <ChatBubble 

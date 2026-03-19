@@ -6,9 +6,9 @@ window.PIXI = PIXI;
 if (PIXI.settings) PIXI.settings.PREFER_ENV = 0;
 
 const TARGET_MODEL_H = 400; 
-const UI_PADDING_H = 150; 
+const UI_PADDING_H = 200; 
 
-const Live2DViewer = ({ petState, isDragging, modelUrl, globalScale = 1.0 }) => {
+const Live2DViewer = ({ petState, isDragging, modelUrl, globalScale = 1.0, onHeadPosChange }) => {
   const canvasRef = useRef(null);
   const appRef    = useRef(null);
   const modelRef  = useRef(null);
@@ -70,8 +70,9 @@ const Live2DViewer = ({ petState, isDragging, modelUrl, globalScale = 1.0 }) => 
         app.stage.addChild(model);
         modelRef.current = model;
 
-        // 5. Update Window
+        // 5. Update Window & Report Head Pos
         window.electronAPI.resizeWindow(winW, winH);
+        if (onHeadPosChange) onHeadPosChange(scaledPaddingH);
       } catch (e) {
         console.error('Failed to load Live2D model:', e);
       }
@@ -79,7 +80,7 @@ const Live2DViewer = ({ petState, isDragging, modelUrl, globalScale = 1.0 }) => 
 
     run();
     return () => { cancelled = true; };
-  }, [modelUrl, globalScale]);
+  }, [modelUrl, globalScale, onHeadPosChange]);
 
   // Motion control
   useEffect(() => {
