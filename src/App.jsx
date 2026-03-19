@@ -131,7 +131,7 @@ function App() {
       
       const reply = await getUniqueReply(prompt, true);
       const cleanReply = await extractAndSaveMemories(reply);
-      addMessage(cleanReply, 'cat');
+      addMessage(cleanReply, 'pet');
       setShowInput(false);
       
       // Update history buffer
@@ -163,7 +163,7 @@ function App() {
       const prompt = `主人说：${text}${stateContext}`;
       const reply = await getUniqueReply(prompt, false);
       const cleanReply = await extractAndSaveMemories(reply);
-      addMessage(cleanReply, 'cat');
+      addMessage(cleanReply, 'pet');
       setShowInput(false);
 
       // Update history buffer for user chat too
@@ -171,7 +171,7 @@ function App() {
 
       setPetState('happy');
     } catch (e) {
-      addMessage("呜呜...我脑子卡壳了连不上网了...", 'cat');
+      addMessage("呜呜...我脑子卡壳了连不上网了...", 'pet');
     } finally {
       setIsThinking(false);
       setTimeout(() => setPetState('idle'), 5000);
@@ -195,14 +195,14 @@ function App() {
   return (
     <div className="app-container">
       <div 
-        className="cat-area" 
+        className="pet-area" 
         onMouseDown={handleMouseDown}
         onMouseEnter={() => window.electronAPI.setIgnoreMouseEvents(false)}
         onMouseLeave={() => window.electronAPI.setIgnoreMouseEvents(true, { forward: true })}
       >
         <Live2DViewer 
-          catState={petState} 
-          isDragging={isDragging} 
+          petState={petState} 
+          isDragging={isDragging}
           modelUrl={modelUrl}
         />
       </div>

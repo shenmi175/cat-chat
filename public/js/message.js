@@ -126,7 +126,7 @@ if(!norunFlag){
 			if (window.location.href == home_Path) { //主页URL判断，需要斜杠结尾
 				var now = (new Date()).getHours();
 				if (now > 23 || now <= 5) {
-					text = '你是夜猫子呀？这么晚还不睡觉，明天起的来嘛？';
+					text = '你是熬夜冠军呀？这么晚还不睡觉，明天起的来嘛？';
 				} else if (now > 5 && now <= 7) {
 					text = '早上好！一日之计在于晨，美好的一天就要开始了！';
 				} else if (now > 7 && now <= 11) {

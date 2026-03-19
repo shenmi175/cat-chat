@@ -29,8 +29,8 @@ html, body, #root {
   pointer-events: auto;
 }
 
-/* --- The Character / Cat --- */
-.cat-area {
+/* --- The Character / Pet --- */
+.pet-area {
   cursor: grab;
   position: absolute;   /* fills the full window */
   inset: 0;
@@ -42,7 +42,7 @@ html, body, #root {
 }
 
 /* Restore grabbing cursor while dragging via JS */
-.cat-area:active {
+.pet-area:active {
   cursor: grabbing;
 }
 
@@ -94,7 +94,7 @@ html, body, #root {
   border-color: rgba(255, 255, 255, 0.7) transparent transparent transparent;
 }
 
-.cat .message-content {
+.pet .message-content {
   color: #d84315;
   font-weight: bold;
 }

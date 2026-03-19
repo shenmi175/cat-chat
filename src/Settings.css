@@ -23,7 +23,7 @@
   margin-bottom: 20px;
 }
 
-.sidebar-cat { font-size: 40px; display: block; margin-bottom: 8px; filter: drop-shadow(0 0 10px rgba(122, 162, 247, 0.3)); }
+.sidebar-pet { font-size: 40px; display: block; margin-bottom: 8px; filter: drop-shadow(0 0 10px rgba(122, 162, 247, 0.3)); }
 .sidebar-header h2 { font-size: 14px; color: var(--text-bright); text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.8; }
 
 .sidebar-nav {

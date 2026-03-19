@@ -1,14 +1,1 @@
-"use strict";
-const { contextBridge, ipcRenderer } = require("electron");
-contextBridge.exposeInMainWorld("electronAPI", {
-  // System
-  getSystemState: () => ipcRenderer.invoke("get-system-state"),
-  // Drag (Wayland compatible delta mode)
-  dragUpdate: (dx, dy) => ipcRenderer.send("drag-update", { dx, dy }),
-  // Config
-  getConfig: () => ipcRenderer.invoke("get-config"),
-  saveConfig: (cfg) => ipcRenderer.invoke("save-config", cfg),
-  openSettings: () => ipcRenderer.send("open-settings"),
-  // Listen for config updates pushed from main process
-  onConfigUpdated: (cb) => ipcRenderer.on("config-updated", (_e, cfg) => cb(cfg))
-});
+"use strict";const{contextBridge:s,ipcRenderer:n}=require("electron");s.exposeInMainWorld("electronAPI",{getSystemState:()=>n.invoke("get-system-state"),dragUpdate:(e,t)=>n.send("drag-update",{dx:e,dy:t}),getConfig:()=>n.invoke("get-config"),saveConfig:e=>n.invoke("save-config",e),appendMemories:e=>n.invoke("append-memories",e),addToHistory:e=>n.invoke("add-to-history",e),openHistory:()=>n.send("open-history"),openSettings:()=>n.send("open-settings"),setIgnoreMouseEvents:(e,t)=>n.send("set-ignore-mouse-events",e,t),onConfigUpdated:e=>{const t=(i,o)=>e(o);return n.on("config-updated",t),()=>n.removeListener("config-updated",t)}});

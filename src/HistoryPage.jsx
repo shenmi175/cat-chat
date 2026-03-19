@@ -37,7 +37,7 @@ function HistoryPage() {
           <div className="no-history">还没有留下任何足迹...</div>
         ) : (
           history.map((msg, i) => (
-            <div key={i} className={`history-item ${msg.sender === 'user' ? 'user' : 'cat'}`}>
+            <div key={i} className={`history-item ${msg.sender === 'user' ? 'user' : 'pet'}`}>
               <div className="history-avatar">
                 {msg.sender === 'user' ? '👤' : '✨'}
               </div>

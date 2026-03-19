@@ -155,7 +155,7 @@ const Live2DViewer = ({ petState, isDragging, modelUrl }) => {
           {status === 'error'
             ? <><div style={{ fontSize: '22px', marginBottom: '8px' }}>😿</div>
                 <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>加载失败</div></>
-            : <div style={{ marginBottom: '6px' }}>(=^･ω･^=)</div>
+            : <div style={{ marginBottom: '6px' }}>✨ (｡♥‿♥｡) ✨</div>
           }
           <div style={{ opacity: 0.9 }}>{statusMsg}</div>
         </div>

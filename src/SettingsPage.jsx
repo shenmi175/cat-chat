@@ -83,7 +83,7 @@ function SettingsPage() {
     <div className="settings-root">
       <aside className="settings-sidebar glass-panel">
         <div className="sidebar-header">
-          <span className="sidebar-cat">✨</span>
+          <span className="sidebar-pet">✨</span>
           <h2>桌宠控制台</h2>
         </div>
         <nav className="sidebar-nav">

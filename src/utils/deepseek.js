@@ -46,8 +46,8 @@ export async function generateReply(userPrompt, isProactive = false) {
 
   if (!apiKey) {
     return isProactive
-      ? '哇！主人连 API Key 都没配就想让我说话，真是太有个性了喵！'
-      : '请先右键→打开设置，填入 API Key 喵~';
+      ? '哇！主人连 API Key 都没配就想让我说话，真是太有个性了！'
+      : '请先右键→打开设置，填入 API Key~';
   }
 
   try {
@@ -72,6 +72,6 @@ export async function generateReply(userPrompt, isProactive = false) {
     return response.data.choices[0].message.content;
   } catch (error) {
     console.error('DeepSeek API Error:', error);
-    return '呜呜呜...本喵脑子坏掉啦，连不上服务器喵...';
+    return '呜呜呜...我脑子坏掉啦，连不上服务器...';
   }
 }
