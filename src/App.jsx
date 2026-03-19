@@ -16,9 +16,6 @@ function App() {
   const [bubbleH, setBubbleH] = useState(0);
   const [inputH, setInputH] = useState(0);
 
-  const bubbleRef = useRef(null);
-  const inputRef = useRef(null);
-
   const lastStateHash = useRef('');
   const lastTriggerReason = useRef(''); // Track the REASON for the last proactive talk
   const prevResponseRef = useRef([]); // Anti-repetition buffer
@@ -102,21 +99,38 @@ function App() {
       }
     });
 
-    // --- Height Observers ---
-    const obs = new ResizeObserver((entries) => {
-      for (let entry of entries) {
-        if (entry.target === bubbleRef.current) setBubbleH(entry.contentRect.height);
-        if (entry.target === inputRef.current) setInputH(entry.contentRect.height);
-      }
-    });
-    if (bubbleRef.current) obs.observe(bubbleRef.current);
-    if (inputRef.current) obs.observe(inputRef.current);
-
     return () => {
       if (typeof cleanupCfg === 'function') cleanupCfg();
-      obs.disconnect();
     };
   }, []);
+
+  // --- Reactive Height Tracking ---
+  const bubbleObs = useRef(null);
+  const inputObs = useRef(null);
+
+  const bubbleRefCallback = (node) => {
+    if (bubbleObs.current) bubbleObs.current.disconnect();
+    if (node) {
+      bubbleObs.current = new ResizeObserver(entries => {
+        setBubbleH(entries[0].contentRect.height);
+      });
+      bubbleObs.current.observe(node);
+    } else {
+      setBubbleH(0);
+    }
+  };
+
+  const inputRefCallback = (node) => {
+    if (inputObs.current) inputObs.current.disconnect();
+    if (node) {
+      inputObs.current = new ResizeObserver(entries => {
+        setInputH(entries[0].contentRect.height);
+      });
+      inputObs.current.observe(node);
+    } else {
+      setInputH(0);
+    }
+  };
 
   // --- Dynamic Window Sizing ---
   useEffect(() => {
@@ -248,7 +262,7 @@ function App() {
       {/* 1. Chat Area (Adaptive Gap 10px above head) */}
       {(messages.length > 0 || isThinking) && (
         <div 
-          ref={bubbleRef}
+          ref={bubbleRefCallback}
           className="chat-area no-drag"
         >
           {messages.length > 0 && (
@@ -280,7 +294,7 @@ function App() {
       {/* 3. Input Area (Adaptive Gap 10px below feet) */}
       {showInput && (
         <div 
-          ref={inputRef}
+          ref={inputRefCallback}
           className="input-area no-drag visible"
         >
            <form onSubmit={(e) => {
