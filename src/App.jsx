@@ -10,10 +10,8 @@ const APP_SWITCH_COOLDOWN_MS = 60 * 1000;
 const LOW_BATTERY_COOLDOWN_MS = 30 * 60 * 1000;
 const TIME_COOLDOWN_MS = 6 * 60 * 60 * 1000;
 const LOW_BATTERY_THRESHOLD = 20;
-const DESKTOP_UI_PADDING = 12;
-const DEFAULT_BUBBLE_HEIGHT = 44;
-const DEFAULT_INPUT_HEIGHT = 44;
-const MIN_WINDOW_WIDTH = 280;
+const PET_WINDOW_BASE_WIDTH = 420;
+const PET_WINDOW_BASE_HEIGHT = 640;
 
 function clampNumber(value, min, max, fallback) {
   const number = Number(value);
@@ -72,8 +70,6 @@ function App() {
   const [showInput, setShowInput] = useState(false);
   const [cfg, setCfg] = useState({});
   const [modelSize, setModelSize] = useState({ width: 300, height: 400 });
-  const [bubbleH, setBubbleH] = useState(0);
-  const [inputH, setInputH] = useState(DEFAULT_INPUT_HEIGHT);
 
   const prevResponseRef = useRef([]);
   const isThinkingRef = useRef(false);
@@ -195,60 +191,17 @@ function App() {
     };
   }, []);
 
-  // --- Reactive Height Tracking ---
-  const bubbleObs = useRef(null);
-  const inputObs = useRef(null);
-
-  const bubbleRefCallback = (node) => {
-    if (bubbleObs.current) bubbleObs.current.disconnect();
-    if (node) {
-      bubbleObs.current = new ResizeObserver((entries) => {
-        const nextH = Math.ceil(entries[0].contentRect.height);
-        setBubbleH((prevH) => (prevH === nextH ? prevH : nextH));
-      });
-      bubbleObs.current.observe(node);
-    } else {
-      setBubbleH(0);
-    }
-  };
-
-  const inputRefCallback = (node) => {
-    if (inputObs.current) inputObs.current.disconnect();
-    if (node) {
-      inputObs.current = new ResizeObserver((entries) => {
-        const nextH = Math.ceil(entries[0].contentRect.height);
-        setInputH((prevH) => (prevH === nextH ? prevH : nextH));
-      });
-      inputObs.current.observe(node);
-    } else {
-      setInputH(0);
-    }
-  };
-
-  // --- Dynamic Window Sizing ---
+  // --- Stable Desktop Viewport ---
   useEffect(() => {
-    const scale = cfg.globalScale || 1.0;
-    const safePadding = Math.ceil(DESKTOP_UI_PADDING * scale);
-    const hasBubble = messages.length > 0 || isThinking;
-    const visibleBubbleH = hasBubble ? Math.max(bubbleH, DEFAULT_BUBBLE_HEIGHT * scale) : 0;
-    const visibleInputH = showInput ? Math.max(inputH, DEFAULT_INPUT_HEIGHT * scale) : 0;
-    const inputStackH = showInput ? visibleInputH + 10 : 0;
-    const bubbleStackH = visibleBubbleH > 0 ? visibleBubbleH + 10 : 0;
-    const minW = MIN_WINDOW_WIDTH * scale;
-    const totalW = Math.max(modelSize.width, minW) + safePadding * 2;
-    const totalH = safePadding * 2
-      + modelSize.height
-      + inputStackH
-      + bubbleStackH;
-
-    const nextWidth = Math.round(totalW + 2);
-    const nextHeight = Math.round(totalH + 2);
+    const scale = clampNumber(cfg.globalScale, 0.5, 2.0, 1.0);
+    const nextWidth = Math.round(PET_WINDOW_BASE_WIDTH * scale);
+    const nextHeight = Math.round(PET_WINDOW_BASE_HEIGHT * scale);
     const lastSize = lastRequestedWindowSizeRef.current;
     if (lastSize.width === nextWidth && lastSize.height === nextHeight) return;
 
     lastRequestedWindowSizeRef.current = { width: nextWidth, height: nextHeight };
     window.electronAPI?.resizeWindow(nextWidth, nextHeight);
-  }, [modelSize, bubbleH, inputH, showInput, cfg.globalScale, messages.length, isThinking]);
+  }, [cfg.globalScale]);
 
   const addMessage = useCallback((text, sender) => {
     const now = new Date();
@@ -392,9 +345,7 @@ function App() {
     }
   };
 
-  const globalScale = cfg.globalScale || 1.0;
-  const renderInputH = showInput ? Math.max(inputH, DEFAULT_INPUT_HEIGHT * globalScale) : 0;
-  const renderInputStackH = showInput ? renderInputH + 10 : 0;
+  const globalScale = clampNumber(cfg.globalScale, 0.5, 2.0, 1.0);
 
   return (
     <div
@@ -402,12 +353,11 @@ function App() {
       style={{
         '--app-scale': globalScale,
         '--pet-h': `${Math.round(modelSize.height)}px`,
-        '--input-stack-h': `${Math.round(renderInputStackH)}px`,
+        '--input-stack-h': showInput ? 'calc(var(--input-bar-h) + var(--scene-gap))' : '0px',
       }}
     >
       {(messages.length > 0 || isThinking) && (
         <div
-          ref={bubbleRefCallback}
           className="chat-area no-drag"
         >
           {messages.length > 0 && (
@@ -438,7 +388,6 @@ function App() {
 
       {showInput && (
         <div
-          ref={inputRefCallback}
           className="input-area no-drag visible"
           data-desktop-interactive="true"
         >

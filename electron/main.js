@@ -21,6 +21,8 @@ app.commandLine.appendSwitch('enable-transparent-visuals');
 // ─── Config persistence ────────────────────────────────────────────────────────
 const CONFIG_PATH = path.join(app.getPath('userData'), 'pet-config.json');
 const LEGACY_CONFIG_PATH = path.join(app.getPath('userData'), 'cat-config.json');
+const PET_WINDOW_BASE_WIDTH = 420;
+const PET_WINDOW_BASE_HEIGHT = 640;
 
 const DEFAULT_CONFIG = {
   apiKey: '',
@@ -36,6 +38,7 @@ const DEFAULT_CONFIG = {
   chatHistory: [],
   modelName: 'Wanko (小狗)',
   modelUrl: '/CubismSdkForWeb-5-r.4/Samples/Resources/Wanko/Wanko.model3.json',
+  globalScale: 1.0,
   enableMousePassthrough: true,
   enableProactiveTalk: true,
   bubbleDurationSec: 6,
@@ -116,8 +119,8 @@ async function loadRenderer(win, hash = '') {
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 320,
-    height: 350,
+    width: PET_WINDOW_BASE_WIDTH,
+    height: PET_WINDOW_BASE_HEIGHT,
     transparent: true,
     backgroundColor: '#00000000',
     frame: false,
@@ -214,13 +217,15 @@ ipcMain.on('set-ignore-mouse-events', (event, ignore, options) => {
   }
 });
 
-ipcMain.on('resize-window', (event, width, height) => {
+ipcMain.on('resize-window', (_event, width, height) => {
   if (mainWindow && !mainWindow.isDestroyed()) {
-    const w = Math.min(Math.max(Math.round(Number(width)), 120), 900);
-    const h = Math.min(Math.max(Math.round(Number(height)), 120), 1200);
-    const [currentW, currentH] = mainWindow.getSize();
-    if (currentW === w && currentH === h) return;
+    const rawW = Number(width);
+    const rawH = Number(height);
+    if (!Number.isFinite(rawW) || !Number.isFinite(rawH)) return;
 
+    const requestedW = Math.min(Math.max(Math.round(rawW), 120), 1200);
+    const requestedH = Math.min(Math.max(Math.round(rawH), 120), 1600);
+    const [currentW, currentH] = mainWindow.getSize();
     const [currentX, currentY] = mainWindow.getPosition();
     const display = screen.getDisplayMatching({
       x: currentX,
@@ -229,6 +234,10 @@ ipcMain.on('resize-window', (event, width, height) => {
       height: currentH,
     });
     const area = display.workArea;
+    const w = Math.min(requestedW, area.width);
+    const h = Math.min(requestedH, area.height);
+    if (currentW === w && currentH === h) return;
+
     const nextX = Math.min(
       Math.max(Math.round(currentX + (currentW - w) / 2), area.x),
       area.x + area.width - w
@@ -238,9 +247,7 @@ ipcMain.on('resize-window', (event, width, height) => {
       area.y + area.height - h
     );
 
-    mainWindow.setResizable(true);
     mainWindow.setBounds({ x: nextX, y: nextY, width: w, height: h }, false);
-    mainWindow.setResizable(false);
   }
 });
 
