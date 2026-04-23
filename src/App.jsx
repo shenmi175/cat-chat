@@ -142,17 +142,17 @@ function App() {
       return undefined;
     }
 
-    const isInteractiveTarget = (target) => (
-      target instanceof Element
-      && Boolean(target.closest('[data-desktop-interactive="true"]'))
-    );
+    const isInteractiveAtPoint = (event) => {
+      const target = document.elementFromPoint(event.clientX, event.clientY);
+      return Boolean(target?.closest('[data-desktop-interactive="true"]'));
+    };
 
     const updateMousePassthrough = (event) => {
       if (isDragging) {
         setMousePassthrough(false);
         return;
       }
-      setMousePassthrough(!isInteractiveTarget(event.target));
+      setMousePassthrough(!isInteractiveAtPoint(event));
     };
 
     const handleMouseLeave = () => {
@@ -227,18 +227,19 @@ function App() {
 
   // --- Dynamic Window Sizing ---
   useEffect(() => {
-    const gap = 10;
     const scale = cfg.globalScale || 1.0;
     const safePadding = Math.ceil(DESKTOP_UI_PADDING * scale);
     const hasBubble = messages.length > 0 || isThinking;
     const visibleBubbleH = hasBubble ? Math.max(bubbleH, DEFAULT_BUBBLE_HEIGHT * scale) : 0;
     const visibleInputH = showInput ? Math.max(inputH, DEFAULT_INPUT_HEIGHT * scale) : 0;
+    const inputStackH = showInput ? visibleInputH + 10 : 0;
+    const bubbleStackH = visibleBubbleH > 0 ? visibleBubbleH + 10 : 0;
     const minW = MIN_WINDOW_WIDTH * scale;
     const totalW = Math.max(modelSize.width, minW) + safePadding * 2;
     const totalH = safePadding * 2
-      + (visibleBubbleH > 0 ? visibleBubbleH + gap : 0)
       + modelSize.height
-      + (showInput ? gap + visibleInputH : 0);
+      + inputStackH
+      + bubbleStackH;
 
     const nextWidth = Math.round(totalW + 2);
     const nextHeight = Math.round(totalH + 2);
@@ -392,9 +393,18 @@ function App() {
   };
 
   const globalScale = cfg.globalScale || 1.0;
+  const renderInputH = showInput ? Math.max(inputH, DEFAULT_INPUT_HEIGHT * globalScale) : 0;
+  const renderInputStackH = showInput ? renderInputH + 10 : 0;
 
   return (
-    <div className="app-container" style={{ '--app-scale': globalScale }}>
+    <div
+      className="app-container"
+      style={{
+        '--app-scale': globalScale,
+        '--pet-h': `${Math.round(modelSize.height)}px`,
+        '--input-stack-h': `${Math.round(renderInputStackH)}px`,
+      }}
+    >
       {(messages.length > 0 || isThinking) && (
         <div
           ref={bubbleRefCallback}
