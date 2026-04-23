@@ -1,5 +1,3 @@
-import React from 'react';
-
 const ChatBubble = ({ message, sender }) => {
   return (
     <div key={message} className={`chat-bubble ${sender}`}>

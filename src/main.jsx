@@ -1,12 +1,10 @@
-import React, { useState, useEffect } from 'react'
+import { StrictMode, useEffect, useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import SettingsPage from './SettingsPage.jsx'
-import DocPage from './DocPage.jsx'
-import HistoryPage from './HistoryPage.jsx'
-import SensoryPage from './SensoryPage.jsx'
 import './index.css'
 
+// eslint-disable-next-line react-refresh/only-export-components
 const Main = () => {
   const [route, setRoute] = useState(window.location.hash || '#');
 
@@ -22,7 +20,7 @@ const Main = () => {
 };
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
+  <StrictMode>
     <Main />
-  </React.StrictMode>
+  </StrictMode>
 )

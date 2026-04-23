@@ -2,10 +2,13 @@
   "name": "pet-chat",
   "private": true,
   "version": "1.0.0",
+  "description": "A desktop virtual pet powered by Electron, React, Live2D, and DeepSeek.",
+  "author": "pet-chat contributors",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build && electron-builder",
+    "build:dir": "vite build && electron-builder --dir",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -24,6 +27,7 @@
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.3",
     "electron": "^41.0.2",
+    "electron-builder": "^24.13.3",
     "eslint": "^9.13.0",
     "eslint-plugin-react": "^7.37.2",
     "eslint-plugin-react-hooks": "^5.0.0",
@@ -34,5 +38,36 @@
     "vite-plugin-electron-renderer": "^0.14.6",
     "vite-plugin-node-polyfills": "^0.25.0"
   },
-  "main": "dist-electron/main.js"
+  "overrides": {
+    "gh-pages": "^6.3.0",
+    "tar": "^7.5.13"
+  },
+  "main": "dist-electron/main.js",
+  "build": {
+    "appId": "com.pet-chat.brainless-flatterer",
+    "productName": "Brainless Flatterer",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**",
+      "dist-electron/**",
+      "package.json"
+    ],
+    "npmRebuild": false,
+    "buildDependenciesFromSource": false,
+    "asarUnpack": [
+      "node_modules/active-win/**/*.node"
+    ],
+    "mac": {
+      "target": "dmg"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "AppImage",
+      "category": "Utility"
+    }
+  }
 }

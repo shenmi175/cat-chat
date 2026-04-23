@@ -1,2 +1,11 @@
-node_modules
-echo ".env" >> .gitignore
+node_modules/
+dist/
+dist-electron/
+release/
+
+.env
+.env.*
+!.env.example
+
+*.log
+.DS_Store

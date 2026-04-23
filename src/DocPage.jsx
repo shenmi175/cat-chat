@@ -1,4 +1,3 @@
-import React, { useState, useEffect } from 'react';
 import './Doc.css';
 
 function DocPage() {

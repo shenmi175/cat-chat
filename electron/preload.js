@@ -15,6 +15,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openHistory:    () => ipcRenderer.send('open-history'),
   openSettings: () => ipcRenderer.send('open-settings'),
 
+  // AI
+  generateReply: (userPrompt, isProactive) => ipcRenderer.invoke('generate-reply', {
+    userPrompt,
+    isProactive: Boolean(isProactive),
+  }),
+
   resizeWindow: (w, h) => ipcRenderer.send('resize-window', w, h),
 
   setIgnoreMouseEvents: (ignore, options) => ipcRenderer.send('set-ignore-mouse-events', ignore, options),

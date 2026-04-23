@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import './Settings.css';
 import DocPage from './DocPage.jsx';
 import HistoryPage from './HistoryPage.jsx';

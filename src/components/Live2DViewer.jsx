@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as PIXI from 'pixi.js';
 import { Live2DModel } from 'pixi-live2d-display';
 
@@ -93,7 +93,7 @@ const Live2DViewer = ({ petState, isDragging, modelUrl, globalScale = 1.0, onMod
 
     run();
     return () => { cancelled = true; };
-  }, [modelUrl, globalScale]); // Re-run if model or global scale changes
+  }, [modelUrl, globalScale, onModelLoad]); // Re-run if model, scale, or callback changes
 
   // Motion control
   useEffect(() => {
@@ -101,7 +101,11 @@ const Live2DViewer = ({ petState, isDragging, modelUrl, globalScale = 1.0, onMod
       try {
         if (isDragging) modelRef.current.motion('Idle');
         else if (petState === 'happy') modelRef.current.motion('TapBody');
-      } catch (_) {}
+      } catch (error) {
+        if (import.meta.env.DEV) {
+          console.debug('[Live2D] Motion unavailable:', error);
+        }
+      }
     }
   }, [petState, isDragging]);
 
