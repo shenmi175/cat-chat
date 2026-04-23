@@ -8,7 +8,7 @@ import { promisify } from 'util';
 import axios from 'axios';
 import si from 'systeminformation';
 
-const { app, BrowserWindow, ipcMain, Menu } = electron;
+const { app, BrowserWindow, ipcMain, Menu, screen } = electron;
 const execFileAsync = promisify(execFile);
 
 // ESM-compatible __dirname polyfill
@@ -36,6 +36,9 @@ const DEFAULT_CONFIG = {
   chatHistory: [],
   modelName: 'Wanko (小狗)',
   modelUrl: '/CubismSdkForWeb-5-r.4/Samples/Resources/Wanko/Wanko.model3.json',
+  enableMousePassthrough: true,
+  enableProactiveTalk: true,
+  bubbleDurationSec: 6,
 };
 
 function loadConfig() {
@@ -67,6 +70,48 @@ function getPreloadPath(name) {
   const mjs = path.join(__dirname, `${name}.mjs`);
   const js  = path.join(__dirname, `${name}.js`);
   return existsSync(mjs) ? mjs : js;
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function getDevServerUrl(hash = '') {
+  if (!process.env.VITE_DEV_SERVER_URL) return null;
+
+  const url = new URL(process.env.VITE_DEV_SERVER_URL);
+  if (url.hostname === 'localhost') {
+    url.hostname = '127.0.0.1';
+  }
+  if (hash) {
+    url.hash = hash;
+  }
+  return url.toString();
+}
+
+async function loadRenderer(win, hash = '') {
+  const devUrl = getDevServerUrl(hash);
+
+  if (!devUrl) {
+    const options = hash ? { hash } : undefined;
+    await win.loadFile(path.join(__dirname, '../dist/index.html'), options);
+    return;
+  }
+
+  const maxAttempts = 30;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      await win.loadURL(devUrl);
+      return;
+    } catch (error) {
+      if (win.isDestroyed()) return;
+      if (attempt === maxAttempts) {
+        console.error(`Failed to load dev server after ${maxAttempts} attempts:`, error);
+        throw error;
+      }
+      await sleep(300);
+    }
+  }
 }
 
 function createWindow() {
@@ -105,21 +150,12 @@ function createWindow() {
   ]);
   mainWindow.webContents.on('context-menu', () => ctxMenu.popup({ window: mainWindow }));
 
-  if (process.env.VITE_DEV_SERVER_URL) {
-    mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
-  } else {
-    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
-  }
+  loadRenderer(mainWindow);
 }
 
 function openDashboard(initialTab = 'general') {
   if (dashboardWindow && !dashboardWindow.isDestroyed()) {
-    // If already open, just redirect to the tab
-    if (process.env.VITE_DEV_SERVER_URL) {
-      dashboardWindow.loadURL(`${process.env.VITE_DEV_SERVER_URL}#${initialTab}`);
-    } else {
-      dashboardWindow.loadFile(path.join(__dirname, '../dist/index.html'), { hash: initialTab });
-    }
+    loadRenderer(dashboardWindow, initialTab);
     dashboardWindow.focus();
     return;
   }
@@ -138,11 +174,7 @@ function openDashboard(initialTab = 'general') {
 
   dashboardWindow.setMenuBarVisibility(false);
 
-  if (process.env.VITE_DEV_SERVER_URL) {
-    dashboardWindow.loadURL(`${process.env.VITE_DEV_SERVER_URL}#${initialTab}`);
-  } else {
-    dashboardWindow.loadFile(path.join(__dirname, '../dist/index.html'), { hash: initialTab });
-  }
+  loadRenderer(dashboardWindow, initialTab);
 
   dashboardWindow.on('closed', () => {
     dashboardWindow = null;
@@ -186,8 +218,29 @@ ipcMain.on('resize-window', (event, width, height) => {
   if (mainWindow && !mainWindow.isDestroyed()) {
     const w = Math.min(Math.max(Math.round(Number(width)), 120), 900);
     const h = Math.min(Math.max(Math.round(Number(height)), 120), 1200);
+    const [currentW, currentH] = mainWindow.getSize();
+    if (currentW === w && currentH === h) return;
+
+    const [currentX, currentY] = mainWindow.getPosition();
+    const display = screen.getDisplayMatching({
+      x: currentX,
+      y: currentY,
+      width: currentW,
+      height: currentH,
+    });
+    const area = display.workArea;
+    const nextX = Math.min(
+      Math.max(Math.round(currentX + (currentW - w) / 2), area.x),
+      area.x + area.width - w
+    );
+    const nextY = Math.min(
+      Math.max(Math.round(currentY + currentH - h), area.y),
+      area.y + area.height - h
+    );
+
     mainWindow.setResizable(true);
-    mainWindow.setSize(w, h, false);
+    mainWindow.setBounds({ x: nextX, y: nextY, width: w, height: h }, false);
+    mainWindow.setResizable(false);
   }
 });
 

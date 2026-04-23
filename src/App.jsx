@@ -10,6 +10,16 @@ const APP_SWITCH_COOLDOWN_MS = 60 * 1000;
 const LOW_BATTERY_COOLDOWN_MS = 30 * 60 * 1000;
 const TIME_COOLDOWN_MS = 6 * 60 * 60 * 1000;
 const LOW_BATTERY_THRESHOLD = 20;
+const DESKTOP_UI_PADDING = 12;
+const DEFAULT_BUBBLE_HEIGHT = 44;
+const DEFAULT_INPUT_HEIGHT = 44;
+const MIN_WINDOW_WIDTH = 280;
+
+function clampNumber(value, min, max, fallback) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return fallback;
+  return Math.min(Math.max(number, min), max);
+}
 
 function getDateKey(date) {
   return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
@@ -63,20 +73,36 @@ function App() {
   const [cfg, setCfg] = useState({});
   const [modelSize, setModelSize] = useState({ width: 300, height: 400 });
   const [bubbleH, setBubbleH] = useState(0);
-  const [inputH, setInputH] = useState(0);
+  const [inputH, setInputH] = useState(DEFAULT_INPUT_HEIGHT);
 
   const prevResponseRef = useRef([]);
   const isThinkingRef = useRef(false);
   const lastActiveAppRef = useRef('');
   const lastTriggerAtRef = useRef({});
+  const lastRequestedWindowSizeRef = useRef({ width: 0, height: 0 });
+  const lastMousePassthroughRef = useRef(false);
 
   // --- Drag: VM & Wayland robust tracking ---
   const [isDragging, setIsDragging] = useState(false);
   const lastPos = useRef({ x: 0, y: 0 });
+  const mousePassthroughEnabled = cfg.enableMousePassthrough !== false;
+  const proactiveTalkEnabled = cfg.enableProactiveTalk !== false;
+  const bubbleDurationMs = clampNumber(cfg.bubbleDurationSec, 3, 20, 6) * 1000;
 
   useEffect(() => {
     isThinkingRef.current = isThinking;
   }, [isThinking]);
+
+  const setMousePassthrough = useCallback((shouldIgnore) => {
+    if (!window.electronAPI?.setIgnoreMouseEvents) return;
+    if (lastMousePassthroughRef.current === shouldIgnore) return;
+
+    lastMousePassthroughRef.current = shouldIgnore;
+    window.electronAPI.setIgnoreMouseEvents(
+      shouldIgnore,
+      shouldIgnore ? { forward: true } : undefined
+    );
+  }, []);
 
   const handleMouseDown = useCallback((e) => {
     if (e.button !== 0) return;
@@ -109,6 +135,45 @@ function App() {
     };
   }, [isDragging]);
 
+  // --- Transparent Window Hit Testing ---
+  useEffect(() => {
+    if (!mousePassthroughEnabled) {
+      setMousePassthrough(false);
+      return undefined;
+    }
+
+    const isInteractiveTarget = (target) => (
+      target instanceof Element
+      && Boolean(target.closest('[data-desktop-interactive="true"]'))
+    );
+
+    const updateMousePassthrough = (event) => {
+      if (isDragging) {
+        setMousePassthrough(false);
+        return;
+      }
+      setMousePassthrough(!isInteractiveTarget(event.target));
+    };
+
+    const handleMouseLeave = () => {
+      if (!isDragging) setMousePassthrough(true);
+    };
+
+    setMousePassthrough(true);
+    window.addEventListener('mousemove', updateMousePassthrough, { passive: true });
+    window.addEventListener('mousedown', updateMousePassthrough, true);
+    window.addEventListener('mouseup', updateMousePassthrough, true);
+    document.addEventListener('mouseleave', handleMouseLeave);
+
+    return () => {
+      window.removeEventListener('mousemove', updateMousePassthrough);
+      window.removeEventListener('mousedown', updateMousePassthrough, true);
+      window.removeEventListener('mouseup', updateMousePassthrough, true);
+      document.removeEventListener('mouseleave', handleMouseLeave);
+      setMousePassthrough(false);
+    };
+  }, [isDragging, mousePassthroughEnabled, setMousePassthrough]);
+
   // --- Initial Config & Listeners ---
   useEffect(() => {
     window.electronAPI?.getConfig().then((newCfg) => {
@@ -138,7 +203,8 @@ function App() {
     if (bubbleObs.current) bubbleObs.current.disconnect();
     if (node) {
       bubbleObs.current = new ResizeObserver((entries) => {
-        setBubbleH(entries[0].contentRect.height);
+        const nextH = Math.ceil(entries[0].contentRect.height);
+        setBubbleH((prevH) => (prevH === nextH ? prevH : nextH));
       });
       bubbleObs.current.observe(node);
     } else {
@@ -150,7 +216,8 @@ function App() {
     if (inputObs.current) inputObs.current.disconnect();
     if (node) {
       inputObs.current = new ResizeObserver((entries) => {
-        setInputH(entries[0].contentRect.height);
+        const nextH = Math.ceil(entries[0].contentRect.height);
+        setInputH((prevH) => (prevH === nextH ? prevH : nextH));
       });
       inputObs.current.observe(node);
     } else {
@@ -161,14 +228,26 @@ function App() {
   // --- Dynamic Window Sizing ---
   useEffect(() => {
     const gap = 10;
-    const minW = 200 * (cfg.globalScale || 1.0);
-    const totalW = Math.max(modelSize.width, minW);
-    const totalH = (bubbleH > 0 ? bubbleH + gap : 0)
+    const scale = cfg.globalScale || 1.0;
+    const safePadding = Math.ceil(DESKTOP_UI_PADDING * scale);
+    const hasBubble = messages.length > 0 || isThinking;
+    const visibleBubbleH = hasBubble ? Math.max(bubbleH, DEFAULT_BUBBLE_HEIGHT * scale) : 0;
+    const visibleInputH = showInput ? Math.max(inputH, DEFAULT_INPUT_HEIGHT * scale) : 0;
+    const minW = MIN_WINDOW_WIDTH * scale;
+    const totalW = Math.max(modelSize.width, minW) + safePadding * 2;
+    const totalH = safePadding * 2
+      + (visibleBubbleH > 0 ? visibleBubbleH + gap : 0)
       + modelSize.height
-      + (showInput ? gap + inputH : 0);
+      + (showInput ? gap + visibleInputH : 0);
 
-    window.electronAPI?.resizeWindow(Math.round(totalW + 2), Math.round(totalH + 2));
-  }, [modelSize, bubbleH, inputH, showInput, cfg.globalScale]);
+    const nextWidth = Math.round(totalW + 2);
+    const nextHeight = Math.round(totalH + 2);
+    const lastSize = lastRequestedWindowSizeRef.current;
+    if (lastSize.width === nextWidth && lastSize.height === nextHeight) return;
+
+    lastRequestedWindowSizeRef.current = { width: nextWidth, height: nextHeight };
+    window.electronAPI?.resizeWindow(nextWidth, nextHeight);
+  }, [modelSize, bubbleH, inputH, showInput, cfg.globalScale, messages.length, isThinking]);
 
   const addMessage = useCallback((text, sender) => {
     const now = new Date();
@@ -188,8 +267,8 @@ function App() {
         }
         return prev;
       });
-    }, 6000);
-  }, []);
+    }, bubbleDurationMs);
+  }, [bubbleDurationMs]);
 
   const extractAndSaveMemories = useCallback(async (reply) => {
     const memoryRegex = /\[MEMORY:\s*(.*?)\]/g;
@@ -246,6 +325,8 @@ function App() {
 
   // --- System state polling ---
   useEffect(() => {
+    if (!proactiveTalkEnabled) return undefined;
+
     let disposed = false;
 
     const pollSystemState = async () => {
@@ -277,7 +358,7 @@ function App() {
       disposed = true;
       clearInterval(intervalId);
     };
-  }, [triggerProactiveTalk]);
+  }, [proactiveTalkEnabled, triggerProactiveTalk]);
 
   const handleSendMessage = async (text) => {
     addMessage(text, 'user');
@@ -333,6 +414,7 @@ function App() {
 
       <div
         className="pet-area"
+        data-desktop-interactive="true"
         onMouseDown={handleMouseDown}
       >
         <Live2DViewer
@@ -348,6 +430,7 @@ function App() {
         <div
           ref={inputRefCallback}
           className="input-area no-drag visible"
+          data-desktop-interactive="true"
         >
           <form onSubmit={(e) => {
             e.preventDefault();
@@ -366,6 +449,7 @@ function App() {
       {!showInput && (
         <div
           className="speak-trigger"
+          data-desktop-interactive="true"
           onClick={() => setShowInput(true)}
           title="和它说话"
         >

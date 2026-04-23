@@ -13,15 +13,17 @@ html, body, #root {
 }
 
 .app-container {
+  --safe-pad: calc(12px * var(--app-scale));
   width: 100%;
   height: 100%;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
   gap: 10px; /* Precise 10px gap between all active components */
   position: relative;
+  padding: var(--safe-pad);
 }
 
 /* Input and chat re-enable pointer events */
@@ -38,6 +40,7 @@ html, body, #root {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex: 0 0 auto;
   z-index: 10;
 }
 
@@ -53,6 +56,7 @@ html, body, #root {
   flex-direction: column;
   align-items: center;
   pointer-events: none;
+  flex: 0 0 auto;
   z-index: 100;
 }
 
@@ -69,8 +73,9 @@ html, body, #root {
   color: #2D3436;
   margin-bottom: 0px; /* Managed by flex gap */
   position: relative;
-  max-width: 85%;
+  max-width: min(92%, calc(320px * var(--app-scale)));
   word-wrap: break-word;
+  transform-origin: bottom center;
   animation: bubblePop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
@@ -120,6 +125,7 @@ html, body, #root {
   transition: all 0.3s ease;
   opacity: 0;
   pointer-events: none;
+  flex: 0 0 auto;
   z-index: 60;
 }
 
@@ -128,7 +134,7 @@ html, body, #root {
   pointer-events: auto;
 }
 
-form {
+.input-area form {
   display: flex;
   gap: calc(8px * var(--app-scale));
   width: 95%;
@@ -136,7 +142,7 @@ form {
   padding: 0 calc(5px + 5px * var(--app-scale));
 }
 
-input {
+.input-area input {
   flex: 1;
   background: rgba(255, 255, 255, 0.4);
   border: 1px solid rgba(255, 255, 255, 0.5);
@@ -149,12 +155,12 @@ input {
   transition: all 0.2s;
 }
 
-input:focus {
+.input-area input:focus {
   border-color: #ff8a65;
   background: #ffffff;
 }
 
-button {
+.input-area button {
   background: #ff8a65;
   color: white;
   border: none;
@@ -166,7 +172,7 @@ button {
   transition: all 0.2s;
 }
 
-button[type="submit"] {
+.input-area button[type="submit"] {
   border: none;
   background: linear-gradient(135deg, #ff8a65 0%, #ff7043 100%);
   color: white;
@@ -179,20 +185,20 @@ button[type="submit"] {
   transition: all 0.2s;
 }
 
-button[type="submit"]:hover {
+.input-area button[type="submit"]:hover {
   transform: translateY(-1px);
   filter: brightness(1.1);
 }
 
-button:active {
+.input-area button:active {
   transform: translateY(0);
 }
 
 /* Floating Speak Button (stays at bottom right relative to window) */
 .speak-trigger {
   position: absolute;
-  bottom: calc(25px * var(--app-scale)); /* Slightly higher to stay above bottom edge */
-  right: calc(22px * var(--app-scale));
+  bottom: calc(var(--safe-pad) + 14px * var(--app-scale));
+  right: calc(var(--safe-pad) + 10px * var(--app-scale));
   width: calc(44px * var(--app-scale));
   height: calc(44px * var(--app-scale));
   background: rgba(255, 255, 255, 0.95);
@@ -208,6 +214,13 @@ button:active {
   transition: all 0.2s;
   z-index: 70; /* Above bottom input bar when it pops up? No, beneath is fine. */
   pointer-events: auto;
+}
+
+.live2d-stage {
+  position: relative;
+  flex: 0 0 auto;
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 .speak-trigger:hover {

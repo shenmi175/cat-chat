@@ -6,11 +6,13 @@ window.PIXI = PIXI;
 if (PIXI.settings) PIXI.settings.PREFER_ENV = 0;
 
 const TARGET_MODEL_H = 400;
+const MODEL_PADDING = 8;
 
 const Live2DViewer = ({ petState, isDragging, modelUrl, globalScale = 1.0, onModelLoad }) => {
   const canvasRef = useRef(null);
   const appRef    = useRef(null);
   const modelRef  = useRef(null);
+  const lastReportedSizeRef = useRef({ width: 0, height: 0 });
   const [localSize, setLocalSize] = useState({ w: 300, h: 400 });
 
   useEffect(() => {
@@ -51,16 +53,16 @@ const Live2DViewer = ({ petState, isDragging, modelUrl, globalScale = 1.0, onMod
         const scaledW = natW * renderScale;
         const scaledH = natH * renderScale;
 
-        // 4. Update Local State and Parent
-        setLocalSize({ w: scaledW, h: scaledH });
-        canvasRef.current.width  = scaledW;
-        canvasRef.current.height = scaledH;
-        app.renderer.resize(scaledW, scaledH);
+        const initialW = Math.ceil(scaledW);
+        const initialH = Math.ceil(scaledH);
+        canvasRef.current.width  = initialW;
+        canvasRef.current.height = initialH;
+        app.renderer.resize(initialW, initialH);
 
         model.scale.set(renderScale);
         model.anchor.set(0.5, 0.5);
-        model.x = scaledW / 2;
-        model.y = scaledH / 2;
+        model.x = initialW / 2;
+        model.y = initialH / 2;
 
         app.stage.addChild(model);
         modelRef.current = model;
@@ -69,21 +71,22 @@ const Live2DViewer = ({ petState, isDragging, modelUrl, globalScale = 1.0, onMod
         app.ticker.update(); // Flush current frame
         const bounds = model.getBounds();
 
-        // Recenter model to fill the NEW snipped canvas
-        model.x = -bounds.x + (bounds.width / 2);
-        model.y = -bounds.y + (bounds.height / 2);
+        // Shift by delta rather than replacing x/y, otherwise the model can jump.
+        model.x += MODEL_PADDING - bounds.x;
+        model.y += MODEL_PADDING - bounds.y;
 
-        // Update renderer to exactly the bounding box
-        const finalW = Math.max(bounds.width, 10);
-        const finalH = Math.max(bounds.height, 10);
+        // Keep a small transparent guard band so animation bounds do not clip/flicker.
+        const finalW = Math.ceil(Math.max(bounds.width + MODEL_PADDING * 2, 80));
+        const finalH = Math.ceil(Math.max(bounds.height + MODEL_PADDING * 2, 80));
         
         setLocalSize({ w: finalW, h: finalH });
         canvasRef.current.width  = finalW;
         canvasRef.current.height = finalH;
         app.renderer.resize(finalW, finalH);
 
-        // 6. Notify Parent about the exact pixel footprint
-        if (onModelLoad) {
+        const lastSize = lastReportedSizeRef.current;
+        if (onModelLoad && (lastSize.width !== finalW || lastSize.height !== finalH)) {
+          lastReportedSizeRef.current = { width: finalW, height: finalH };
           onModelLoad({ width: finalW, height: finalH });
         }
       } catch (e) {
@@ -110,7 +113,7 @@ const Live2DViewer = ({ petState, isDragging, modelUrl, globalScale = 1.0, onMod
   }, [petState, isDragging]);
 
   return (
-    <div style={{ width: localSize.w, height: localSize.h, position: 'relative' }}>
+    <div className="live2d-stage" style={{ width: localSize.w, height: localSize.h }}>
       <canvas ref={canvasRef} style={{ width: '100%', height: '100%' }} />
     </div>
   );

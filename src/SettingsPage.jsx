@@ -203,6 +203,54 @@ function SettingsPage() {
             </section>
 
             <section className="settings-section glass-card">
+              <label className="settings-label">桌面交互行为</label>
+              <div className="settings-switch-row">
+                <div>
+                  <strong>透明区域鼠标穿透</strong>
+                  <p>开启后，只有宠物、说话按钮和输入框会拦截鼠标，其他透明区域点击会落到桌面应用。</p>
+                </div>
+                <label className="settings-switch">
+                  <input
+                    type="checkbox"
+                    checked={cfg.enableMousePassthrough !== false}
+                    onChange={(e) => setCfg({ ...cfg, enableMousePassthrough: e.target.checked })}
+                  />
+                  <span />
+                </label>
+              </div>
+
+              <div className="settings-switch-row">
+                <div>
+                  <strong>主动感知发言</strong>
+                  <p>关闭后，它不会因切换应用、低电量或深夜使用电脑而主动弹气泡。</p>
+                </div>
+                <label className="settings-switch">
+                  <input
+                    type="checkbox"
+                    checked={cfg.enableProactiveTalk !== false}
+                    onChange={(e) => setCfg({ ...cfg, enableProactiveTalk: e.target.checked })}
+                  />
+                  <span />
+                </label>
+              </div>
+
+              <div className="settings-number-row">
+                <div>
+                  <strong>气泡停留时间</strong>
+                  <p>控制桌面气泡自动消失速度，建议 5-8 秒。</p>
+                </div>
+                <input
+                  className="settings-number"
+                  type="number"
+                  min="3"
+                  max="20"
+                  value={cfg.bubbleDurationSec || 6}
+                  onChange={(e) => setCfg({ ...cfg, bubbleDurationSec: Number(e.target.value) })}
+                />
+              </div>
+            </section>
+
+            <section className="settings-section glass-card">
               <label className="settings-label">性格与行为准则</label>
               <textarea
                 className="settings-textarea"
